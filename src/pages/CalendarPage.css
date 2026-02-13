@@ -1,0 +1,178 @@
+.calendar-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Month Navigation */
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.month-nav-btn {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.month-nav-btn:active {
+  background: var(--color-primary);
+}
+
+.month-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* Legend */
+.calendar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot--period {
+  background: var(--color-period);
+}
+
+.legend-dot--predicted {
+  background: var(--color-period);
+  opacity: 0.4;
+}
+
+.legend-dot--fertile {
+  background: var(--color-fertile);
+}
+
+.legend-dot--ovulation {
+  background: var(--color-ovulation);
+}
+
+/* Calendar Grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 6px 0;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  gap: 2px;
+}
+
+.calendar-day:active {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.calendar-day--outside {
+  opacity: 0.25;
+}
+
+.calendar-day--today .calendar-day-number {
+  background: var(--color-primary);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.calendar-day--period {
+  background: rgba(244, 63, 94, 0.2);
+}
+
+.calendar-day--period .calendar-day-number {
+  color: var(--color-period);
+  font-weight: 700;
+}
+
+.calendar-day--predicted {
+  background: rgba(244, 63, 94, 0.08);
+}
+
+.calendar-day--predicted .calendar-day-number {
+  color: rgba(244, 63, 94, 0.5);
+}
+
+.calendar-day--fertile {
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.calendar-day--fertile .calendar-day-number {
+  color: var(--color-fertile);
+}
+
+.calendar-day--ovulation {
+  background: rgba(168, 85, 247, 0.15);
+}
+
+.calendar-day--ovulation .calendar-day-number {
+  color: var(--color-ovulation);
+  font-weight: 700;
+}
+
+.calendar-day-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+.calendar-day-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+}
