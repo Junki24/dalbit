@@ -207,6 +207,140 @@
   border-color: rgba(203, 213, 225, 0.3);
 }
 
+/* ── Skeleton light overrides ── */
+[data-theme="light"] .skeleton {
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.6) 0%, rgba(203, 213, 225, 0.5) 50%, rgba(226, 232, 240, 0.6) 100%);
+  background-size: 200% 100%;
+}
+
+/* ── Toast / Confirm Dialog light overrides ── */
+[data-theme="light"] .toast {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+[data-theme="light"] .confirm-dialog {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+}
+[data-theme="light"] .confirm-btn--cancel {
+  background: rgba(241, 245, 249, 0.8);
+}
+
+/* ── Migration light overrides ── */
+[data-theme="light"] .migration-meta {
+  background: rgba(241, 245, 249, 0.7);
+}
+[data-theme="light"] .migration-date-input,
+[data-theme="light"] .migration-flow-select {
+  background: rgba(241, 245, 249, 0.8);
+}
+[data-theme="light"] .btn-migration-cancel {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.4);
+}
+
+/* ── Home Page light overrides ── */
+[data-theme="light"] .prediction-card {
+  border-color: rgba(203, 213, 225, 0.3);
+}
+[data-theme="light"] .symptom-tag {
+  background: rgba(99, 102, 241, 0.08);
+}
+[data-theme="light"] .insight-card,
+[data-theme="light"] .today-symptoms {
+  background: rgba(255, 255, 255, 0.8);
+}
+[data-theme="light"] .tip-card {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.04), rgba(124, 58, 237, 0.02));
+  border-color: rgba(34, 197, 94, 0.1);
+}
+
+/* ── Calendar Page light overrides ── */
+[data-theme="light"] .day-symptom-chip {
+  background: rgba(124, 58, 237, 0.06);
+  border-color: rgba(124, 58, 237, 0.1);
+}
+[data-theme="light"] .day-detail-close {
+  background: rgba(203, 213, 225, 0.2);
+}
+
+/* ── Record Page additional light overrides ── */
+[data-theme="light"] .date-today-badge {
+  background: rgba(124, 58, 237, 0.1);
+}
+[data-theme="light"] .end-date-info {
+  background: rgba(34, 197, 94, 0.06);
+}
+[data-theme="light"] .end-date-confirm {
+  background: rgba(34, 197, 94, 0.03);
+}
+[data-theme="light"] .med-register-toggle {
+  background: rgba(34, 197, 94, 0.03);
+}
+[data-theme="light"] .med-quick-btn {
+  background: rgba(34, 197, 94, 0.05);
+}
+[data-theme="light"] .med-intake-dosage {
+  background: rgba(124, 58, 237, 0.06);
+}
+[data-theme="light"] .intimacy-count-badge {
+  background: rgba(168, 85, 247, 0.12);
+}
+[data-theme="light"] .intimacy-record-protection {
+  background: rgba(168, 85, 247, 0.06);
+}
+[data-theme="light"] .intimacy-add-btn {
+  background: rgba(168, 85, 247, 0.03);
+}
+[data-theme="light"] .severity-close {
+  background: rgba(203, 213, 225, 0.15);
+}
+
+/* ── Stats Page additional light overrides ── */
+[data-theme="light"] .pattern-item,
+[data-theme="light"] .intimacy-method-item {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.3);
+}
+[data-theme="light"] .intimacy-phase-bar-bg {
+  background: rgba(203, 213, 225, 0.4);
+}
+[data-theme="light"] .stats-section-count {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+/* ── Settings Page additional light overrides ── */
+[data-theme="light"] .settings-field {
+  border-bottom-color: rgba(203, 213, 225, 0.4);
+}
+[data-theme="light"] .btn-signout {
+  background: rgba(244, 63, 94, 0.04);
+}
+[data-theme="light"] .settings-section--danger {
+  background: rgba(244, 63, 94, 0.02);
+}
+[data-theme="light"] .btn-delete-all {
+  background: rgba(244, 63, 94, 0.05);
+}
+[data-theme="light"] .btn-import {
+  background: rgba(124, 58, 237, 0.04);
+}
+
+/* ── Login Page light overrides ── */
+[data-theme="light"] .login-page {
+  background: radial-gradient(ellipse at 50% 20%, rgba(124, 58, 237, 0.06) 0%, transparent 50%),
+              radial-gradient(ellipse at 30% 80%, rgba(59, 130, 246, 0.03) 0%, transparent 40%);
+}
+[data-theme="light"] .btn-google {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .btn-google:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* ── Onboarding Page light overrides ── */
+[data-theme="light"] .number-input button {
+  background: rgba(255, 255, 255, 0.8);
+}
+
 *,
 *::before,
 *::after {
