@@ -14,6 +14,7 @@
   font-size: 3rem;
   display: block;
   margin-bottom: 12px;
+  filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.3));
 }
 
 .onboarding-header h1 {
@@ -21,6 +22,7 @@
   font-weight: 700;
   color: var(--color-text);
   margin-bottom: 6px;
+  letter-spacing: -0.02em;
 }
 
 .onboarding-header p {
@@ -48,17 +50,18 @@
 
 .form-input {
   padding: 12px 14px;
-  background: var(--color-bg-card);
+  background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   color: var(--color-text);
   font-size: 1rem;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-input:focus {
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
 }
 
 .form-input--number {
@@ -80,22 +83,27 @@
 }
 
 .number-input button {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: 1px solid var(--color-border);
   background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   color: var(--color-text);
   font-size: 1.25rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-card);
 }
 
 .number-input button:active {
   background: var(--color-primary);
+  transform: scale(0.93);
+  box-shadow: var(--shadow-glow);
 }
 
 .form-hint {
@@ -105,8 +113,12 @@
 
 .consent-section {
   background: var(--color-bg-card);
-  border-radius: 12px;
-  padding: 16px;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-card);
 }
 
 .consent-section h3 {
@@ -150,22 +162,25 @@
 
 .btn-primary {
   padding: 14px 24px;
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
   margin-top: 8px;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
 }
 
 .btn-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-primary:not(:disabled):active {
-  transform: scale(0.98);
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
 }

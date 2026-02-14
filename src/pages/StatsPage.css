@@ -17,6 +17,7 @@
 
 .stats-empty-icon {
   font-size: 3rem;
+  filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.3));
 }
 
 .stats-empty h2 {
@@ -34,8 +35,12 @@
 /* Sections */
 .stats-section {
   background: var(--color-bg-card);
-  border-radius: 12px;
-  padding: 16px;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-card);
 }
 
 .stats-section-title {
@@ -43,6 +48,7 @@
   font-weight: 700;
   color: var(--color-text);
   margin-bottom: 14px;
+  letter-spacing: -0.02em;
 }
 
 .stats-note {
@@ -64,8 +70,9 @@
 }
 
 .stat-card {
-  background: var(--color-bg);
-  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  border-radius: var(--radius-md);
   padding: 14px 12px;
   display: flex;
   flex-direction: column;
@@ -74,9 +81,10 @@
 }
 
 .stat-value {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: var(--color-text);
+  letter-spacing: -0.02em;
 }
 
 .stat-label {
@@ -88,7 +96,7 @@
 /* Confidence Bar */
 .confidence-bar {
   height: 8px;
-  background: var(--color-bg);
+  background: rgba(15, 23, 42, 0.5);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -100,15 +108,18 @@
 }
 
 .confidence-fill[data-level="low"] {
-  background: var(--color-period);
+  background: linear-gradient(90deg, var(--color-period), #fb7185);
+  box-shadow: 0 0 6px rgba(244, 63, 94, 0.3);
 }
 
 .confidence-fill[data-level="medium"] {
-  background: #f59e0b;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.3);
 }
 
 .confidence-fill[data-level="high"] {
-  background: var(--color-success);
+  background: linear-gradient(90deg, var(--color-success), #4ade80);
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
 }
 
 .confidence-labels {
@@ -141,8 +152,9 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  background: var(--color-bg);
-  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(51, 65, 85, 0.2);
+  border-radius: var(--radius-md);
 }
 
 .rank-number {
@@ -198,10 +210,11 @@
 .trend-bar {
   width: 100%;
   max-width: 32px;
-  background: var(--color-primary);
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   border-radius: 4px 4px 0 0;
   min-height: 4px;
   transition: height 0.3s ease;
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.15);
 }
 
 .trend-month {
@@ -221,8 +234,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  background: var(--color-bg);
-  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(51, 65, 85, 0.2);
+  border-radius: var(--radius-sm);
 }
 
 .history-date {
@@ -238,14 +252,130 @@
 
 .history-tag {
   font-size: 0.7rem;
-  padding: 3px 8px;
-  border-radius: 10px;
+  padding: 3px 10px;
+  border-radius: 20px;
   background: rgba(244, 63, 94, 0.12);
   color: var(--color-period);
   font-weight: 500;
 }
 
 .history-tag--cycle {
-  background: rgba(99, 102, 241, 0.12);
+  background: rgba(124, 58, 237, 0.12);
   color: var(--color-primary-light);
+}
+
+/* Severity Ranking */
+.severity-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.severity-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(51, 65, 85, 0.2);
+  border-radius: var(--radius-md);
+}
+
+.severity-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.severity-name {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  font-weight: 500;
+  width: 72px;
+  flex-shrink: 0;
+}
+
+.severity-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: rgba(51, 65, 85, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.severity-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.severity-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text);
+  width: 24px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Symptom Correlations */
+.correlation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.correlation-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(51, 65, 85, 0.2);
+  border-radius: var(--radius-md);
+}
+
+.correlation-pair {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.correlation-name {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.correlation-separator {
+  font-size: 0.75rem;
+  color: var(--color-primary-light);
+  font-weight: 700;
+  margin: 0 2px;
+}
+
+.correlation-count {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* CSV Export */
+.btn-csv-export {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: rgba(15, 23, 42, 0.3);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-csv-export:active {
+  background: rgba(124, 58, 237, 0.1);
+  transform: scale(0.98);
 }
