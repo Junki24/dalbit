@@ -13,7 +13,7 @@ export function SettingsPage() {
   const { user, userSettings, signOut, updateUserSettings } = useAuth()
   const { showToast, confirm } = useToast()
   const { theme, toggleTheme } = useTheme()
-  const { requestPermission, isSupported, permission } = useNotifications()
+  const { requestPermission, subscribeToPush, isSupported, permission } = useNotifications()
   const { periods } = usePeriods()
   const { symptoms } = useSymptoms()
   const [displayName, setDisplayName] = useState(userSettings?.display_name ?? '')
@@ -301,6 +301,7 @@ export function SettingsPage() {
                 const granted = await requestPermission()
                 if (granted) {
                   await updateUserSettings({ notifications_enabled: true })
+                  await subscribeToPush()
                   showToast('알림이 활성화되었습니다!', 'success')
                 } else {
                   showToast('알림 권한이 거부되었습니다.', 'error')
@@ -312,7 +313,8 @@ export function SettingsPage() {
           )}
         </div>
         <p className="settings-hint">
-          매일 저녁 9시에 오늘의 기록을 남기라는 리마인더를 받습니다.
+          매일 저녁 9시에 주기 상태에 맞는 스마트 알림을 받습니다.
+          앱을 닫아도 알림이 도착합니다.
         </p>
       </div>
 
