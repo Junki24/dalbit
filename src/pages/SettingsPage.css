@@ -4,6 +4,34 @@
   gap: 16px;
 }
 
+/* Gender Mode Toggle */
+.gender-mode-toggle {
+  display: flex;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+
+.gender-mode-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.gender-mode-btn--active {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.3);
+}
+
 .settings-section {
   background: var(--color-bg-card);
   backdrop-filter: var(--glass-blur);

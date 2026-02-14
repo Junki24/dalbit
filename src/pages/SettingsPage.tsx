@@ -28,6 +28,7 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [showCopied, setShowCopied] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [devCommentOpen, setDevCommentOpen] = useState(false)
   const [guideOpen, setGuideOpen] = useState(periods.length === 0)
   const [shareResult, setShareResult] = useState<'copied' | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -342,8 +343,32 @@ export function SettingsPage() {
     }
   }
 
-  return (
+   return (
     <div className="settings-page">
+      {/* Developer Comment (collapsible, top) */}
+      <div className="settings-section dev-comment">
+        <button
+          className="guide-toggle"
+          onClick={() => setDevCommentOpen((v) => !v)}
+        >
+          <h3 className="settings-section-title" style={{ marginBottom: 0 }}>💌 개발자의 말</h3>
+          <span className={`guide-arrow ${devCommentOpen ? 'guide-arrow--open' : ''}`}>›</span>
+        </button>
+        {devCommentOpen && (
+          <div className="dev-comment-body">
+            <p className="dev-comment-text">
+              안녕하세요, 개발자 홍준기입니다.
+            </p>
+            <p className="dev-comment-text">
+              아내 유림이가 생리주기 앱을 좀 더 편하게, 함께 볼 수 있으면 좋겠다는 마음에서 달빛을 만들게 되었어요.
+            </p>
+            <p className="dev-comment-text">
+              이 앱은 무료로 운영되고 있어서 부담 없이 사용하셔도 됩니다. 아래 공유 버튼으로 주변에 알려주시면 큰 힘이 돼요!
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Profile */}
       <div className="settings-section">
         <h3 className="settings-section-title">👤 프로필</h3>
@@ -363,10 +388,113 @@ export function SettingsPage() {
         </div>
         <div className="settings-field">
           <label>사용 모드</label>
-          <span className="settings-value">
-            {isMale ? '👨 남성 (파트너 모드)' : '👩 여성 (주기 관리)'}
-          </span>
+          <div className="gender-mode-toggle">
+            <button
+              className={`gender-mode-btn ${!isMale ? 'gender-mode-btn--active' : ''}`}
+              onClick={async () => {
+                if (isMale) {
+                  const ok = await confirm({
+                    title: '모드 변경',
+                    message: '여성 모드로 전환하시겠습니까?\n주기 기록 및 관리 기능을 사용할 수 있습니다.',
+                    confirmText: '전환',
+                    cancelText: '취소',
+                  })
+                  if (ok) {
+                    await updateUserSettings({ gender: 'female' })
+                    showToast('여성 모드로 전환되었습니다.', 'success')
+                    setTimeout(() => window.location.reload(), 500)
+                  }
+                }
+              }}
+            >
+              🌸 여성
+            </button>
+            <button
+              className={`gender-mode-btn ${isMale ? 'gender-mode-btn--active' : ''}`}
+              onClick={async () => {
+                if (!isMale) {
+                  const ok = await confirm({
+                    title: '모드 변경',
+                    message: '남성 모드로 전환하시겠습니까?\n파트너의 주기 정보만 확인할 수 있습니다.',
+                    confirmText: '전환',
+                    cancelText: '취소',
+                  })
+                  if (ok) {
+                    await updateUserSettings({ gender: 'male' })
+                    showToast('남성 모드로 전환되었습니다.', 'success')
+                    setTimeout(() => window.location.reload(), 500)
+                  }
+                }
+              }}
+            >
+              💙 남성
+            </button>
+          </div>
         </div>
+      </div>
+
+      {/* Guide */}
+      <div className="settings-section">
+        <button
+          className="guide-toggle"
+          onClick={() => setGuideOpen((v) => !v)}
+        >
+          <h3 className="settings-section-title" style={{ marginBottom: 0 }}>📖 사용 가이드</h3>
+          <span className={`guide-arrow ${guideOpen ? 'guide-arrow--open' : ''}`}>›</span>
+        </button>
+        {guideOpen && (
+          <div className="guide-content">
+            <div className="guide-item">
+              <span className="guide-icon">🏠</span>
+              <div>
+                <strong>홈</strong>
+                <p>오늘의 주기 상태, D-day, 컨디션 인사이트를 한눈에 확인해요. 주간 미니 캘린더에서 이번 주 예측도 볼 수 있어요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">📅</span>
+              <div>
+                <strong>캘린더</strong>
+                <p>생리일(빨강), 예상 생리일(연빨강), 가임기(파랑), 배란일(보라)이 색으로 구분돼요. 날짜를 탭하면 상세 정보를 확인하고 기록 페이지로 이동할 수 있어요. 하단에 주기 기록 표도 있어요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">✏️</span>
+              <div>
+                <strong>기록</strong>
+                <p>생리 시작/종료, 유량, 증상, 약 복용, 관계일, 메모를 한 화면에서 기록해요. 날짜를 좌우로 넘기면 다른 날짜도 기록할 수 있어요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">📊</span>
+              <div>
+                <strong>통계</strong>
+                <p>평균 주기/기간, 증상 패턴, 관계일 트렌드를 분석해요. PDF 리포트로 내보내기도 가능해요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">💑</span>
+              <div>
+                <strong>파트너 공유</strong>
+                <p>설정에서 초대 링크를 생성하면 파트너가 읽기 전용으로 주기 정보를 확인할 수 있어요. 파트너에게 맞춤 행동 요령도 제공돼요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">🔮</span>
+              <div>
+                <strong>주기 예측</strong>
+                <p>기록이 쌓일수록 예측이 정확해져요. 설정에서 예측 개월 수(1~5)를 조절할 수 있어요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">🔔</span>
+              <div>
+                <strong>알림</strong>
+                <p>알림을 켜면 매일 저녁 9시에 주기 상태에 맞는 스마트 알림을 받아요. 생리 예정, 배란일, 가임기 시작 등을 미리 알려줘요.</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Cycle Settings (female only) */}
@@ -593,84 +721,6 @@ export function SettingsPage() {
         </button>
       </div>
       )}
-
-      {/* Guide */}
-      <div className="settings-section">
-        <button
-          className="guide-toggle"
-          onClick={() => setGuideOpen((v) => !v)}
-        >
-          <h3 className="settings-section-title" style={{ marginBottom: 0 }}>📖 사용 가이드</h3>
-          <span className={`guide-arrow ${guideOpen ? 'guide-arrow--open' : ''}`}>›</span>
-        </button>
-        {guideOpen && (
-          <div className="guide-content">
-            <div className="guide-item">
-              <span className="guide-icon">🏠</span>
-              <div>
-                <strong>홈</strong>
-                <p>오늘의 주기 상태, D-day, 컨디션 인사이트를 한눈에 확인해요. 주간 미니 캘린더에서 이번 주 예측도 볼 수 있어요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">📅</span>
-              <div>
-                <strong>캘린더</strong>
-                <p>생리일(빨강), 예상 생리일(연빨강), 가임기(파랑), 배란일(보라)이 색으로 구분돼요. 날짜를 탭하면 상세 정보를 확인하고 기록 페이지로 이동할 수 있어요. 하단에 주기 기록 표도 있어요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">✏️</span>
-              <div>
-                <strong>기록</strong>
-                <p>생리 시작/종료, 유량, 증상, 약 복용, 관계일, 메모를 한 화면에서 기록해요. 날짜를 좌우로 넘기면 다른 날짜도 기록할 수 있어요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">📊</span>
-              <div>
-                <strong>통계</strong>
-                <p>평균 주기/기간, 증상 패턴, 관계일 트렌드를 분석해요. PDF 리포트로 내보내기도 가능해요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">💑</span>
-              <div>
-                <strong>파트너 공유</strong>
-                <p>설정에서 초대 링크를 생성하면 파트너가 읽기 전용으로 주기 정보를 확인할 수 있어요. 파트너에게 맞춤 행동 요령도 제공돼요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">🔮</span>
-              <div>
-                <strong>주기 예측</strong>
-                <p>기록이 쌓일수록 예측이 정확해져요. 설정에서 예측 개월 수(1~5)를 조절할 수 있어요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">🔔</span>
-              <div>
-                <strong>알림</strong>
-                <p>알림을 켜면 매일 저녁 9시에 주기 상태에 맞는 스마트 알림을 받아요. 생리 예정, 배란일, 가임기 시작 등을 미리 알려줘요.</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Developer Comment */}
-      <div className="settings-section dev-comment">
-        <h3 className="settings-section-title">💌 개발자의 말</h3>
-        <p className="dev-comment-text">
-          안녕하세요, 개발자 홍준기입니다.
-        </p>
-        <p className="dev-comment-text">
-          아내 유림이가 생리주기 앱을 좀 더 편하게, 함께 볼 수 있으면 좋겠다는 마음에서 달빛을 만들게 되었어요.
-        </p>
-        <p className="dev-comment-text">
-          이 앱은 무료로 운영되고 있어서 부담 없이 사용하셔도 됩니다. 아래 공유 버튼으로 주변에 알려주시면 큰 힘이 돼요!
-        </p>
-      </div>
 
       {/* Share + Feedback */}
       <div className="settings-bottom-actions">
