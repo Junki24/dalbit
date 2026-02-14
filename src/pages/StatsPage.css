@@ -1,0 +1,251 @@
+.stats-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Empty State */
+.stats-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 24px;
+  gap: 12px;
+}
+
+.stats-empty-icon {
+  font-size: 3rem;
+}
+
+.stats-empty h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.stats-empty p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  max-width: 260px;
+}
+
+/* Sections */
+.stats-section {
+  background: var(--color-bg-card);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.stats-section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 14px;
+}
+
+.stats-note {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-top: 10px;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.stats-grid--2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.stat-card {
+  background: var(--color-bg);
+  border-radius: 10px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+/* Confidence Bar */
+.confidence-bar {
+  height: 8px;
+  background: var(--color-bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.confidence-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.confidence-fill[data-level="low"] {
+  background: var(--color-period);
+}
+
+.confidence-fill[data-level="medium"] {
+  background: #f59e0b;
+}
+
+.confidence-fill[data-level="high"] {
+  background: var(--color-success);
+}
+
+.confidence-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.confidence-labels span {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.confidence-labels span.active {
+  opacity: 1;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* Symptom Ranking */
+.symptom-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.symptom-rank-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border-radius: 10px;
+}
+
+.rank-number {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--color-primary-light);
+  width: 20px;
+  text-align: center;
+}
+
+.rank-icon {
+  font-size: 1.1rem;
+}
+
+.rank-name {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.rank-count {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* Monthly Trend Chart */
+.trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 120px;
+  padding: 0 4px;
+}
+
+.trend-bar-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.trend-count {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.trend-bar {
+  width: 100%;
+  max-width: 32px;
+  background: var(--color-primary);
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  transition: height 0.3s ease;
+}
+
+.trend-month {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+}
+
+/* Cycle History */
+.cycle-history {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border-radius: 8px;
+}
+
+.history-date {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.history-details {
+  display: flex;
+  gap: 6px;
+}
+
+.history-tag {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: rgba(244, 63, 94, 0.12);
+  color: var(--color-period);
+  font-weight: 500;
+}
+
+.history-tag--cycle {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--color-primary-light);
+}

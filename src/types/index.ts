@@ -7,6 +7,7 @@ export interface Period {
   flow_intensity: FlowIntensity | null
   created_at: string
   updated_at: string
+  deleted_at: string | null // soft delete - null이면 활성 기록
 }
 
 export type FlowIntensity = 'spotting' | 'light' | 'medium' | 'heavy'

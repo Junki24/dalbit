@@ -48,7 +48,11 @@ export function RecordPage() {
 
   const handlePeriodToggle = async () => {
     if (isPeriodActive && existingPeriod) {
-      // Remove period
+      // 삭제 전 확인 다이얼로그 — 기존 데이터 보호
+      const confirmed = window.confirm(
+        '이 날짜의 생리 기록을 삭제하시겠습니까?\n(데이터는 안전하게 보관되며 복구할 수 있습니다)'
+      )
+      if (!confirmed) return
       await deletePeriod.mutateAsync(existingPeriod.id)
       setIsPeriodActive(false)
       setFlowIntensity(null)

@@ -15,6 +15,7 @@ export function usePeriods() {
         .from('periods')
         .select('*')
         .eq('user_id', user.id)
+        .is('deleted_at', null)
         .order('start_date', { ascending: false })
 
       if (error) throw error
@@ -76,8 +77,29 @@ export function usePeriods() {
 
   const deletePeriod = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('periods').delete().eq('id', id)
+      // Soft delete: 데이터를 실제로 삭제하지 않고 deleted_at 타임스탬프만 설정
+      const { error } = await supabase
+        .from('periods')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
       if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['periods', user?.id] })
+    },
+  })
+
+  const restorePeriod = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase
+        .from('periods')
+        .update({ deleted_at: null })
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as Period
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['periods', user?.id] })
@@ -90,5 +112,6 @@ export function usePeriods() {
     addPeriod,
     updatePeriod,
     deletePeriod,
+    restorePeriod,
   }
 }

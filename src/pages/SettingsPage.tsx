@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
@@ -26,15 +27,26 @@ export function SettingsPage() {
     setSaving(false)
   }
 
-  const handleExportData = () => {
-    const data = {
+  const handleExportData = async () => {
+    // 내보내기에는 soft-deleted 포함 — 완전한 백업
+    let allPeriods = periods
+    if (user && isSupabaseConfigured) {
+      const { data } = await supabase
+        .from('periods')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('start_date', { ascending: false })
+      if (data) allPeriods = data
+    }
+
+    const exportData = {
       exported_at: new Date().toISOString(),
       user_email: user?.email,
       settings: userSettings,
-      periods,
+      periods: allPeriods,
       symptoms,
     }
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
       type: 'application/json',
     })
     const url = URL.createObjectURL(blob)
@@ -139,6 +151,9 @@ export function SettingsPage() {
             초대 링크 생성
           </button>
         )}
+        <Link to="/partner" className="btn-partner-view">
+          💑 파트너 페이지 보기
+        </Link>
       </div>
 
       {/* Data */}

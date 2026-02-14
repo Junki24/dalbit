@@ -1,0 +1,79 @@
+.invite-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px;
+}
+
+.invite-card {
+  background: var(--color-bg-card);
+  border-radius: 16px;
+  padding: 32px 24px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.invite-icon {
+  font-size: 3rem;
+}
+
+.invite-card h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.invite-desc {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.invite-desc strong {
+  color: var(--color-primary-light);
+}
+
+.invite-permissions {
+  width: 100%;
+  background: var(--color-bg);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+}
+
+.invite-permissions h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.invite-permissions ul {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.invite-permissions li {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.invite-note {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.invite-card .btn-primary {
+  width: 100%;
+  margin-top: 4px;
+}

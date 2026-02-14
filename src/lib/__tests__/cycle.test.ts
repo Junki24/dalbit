@@ -28,6 +28,7 @@ function makePeriod(
     flow_intensity: flowIntensity ?? null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    deleted_at: null,
   }
 }
 

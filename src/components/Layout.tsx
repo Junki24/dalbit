@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { path: '/', icon: '🏠', label: '홈' },
   { path: '/calendar', icon: '📅', label: '캘린더' },
   { path: '/record', icon: '✏️', label: '기록' },
+  { path: '/stats', icon: '📊', label: '통계' },
   { path: '/settings', icon: '⚙️', label: '설정' },
 ]
 
