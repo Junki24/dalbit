@@ -113,7 +113,17 @@ export function MigrationSection() {
         })
 
         if (fnError) {
-          showToast(fnError.message || `이미지 ${i + 1} 분석 실패`, 'error')
+          // supabase.functions.invoke hides the actual error body behind error.context
+          let errorDetail = fnError.message
+          try {
+            const ctx = (fnError as unknown as { context?: Response }).context
+            if (ctx && typeof ctx.json === 'function') {
+              const body = await ctx.json()
+              errorDetail = body.error || body.message || errorDetail
+            }
+          } catch { /* use default message */ }
+          console.error('[달빛] Edge Function 오류:', errorDetail, fnError)
+          showToast(errorDetail || `이미지 ${i + 1} 분석 실패`, 'error')
           continue
         }
 
