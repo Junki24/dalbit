@@ -43,6 +43,7 @@ function makePrediction(overrides?: Partial<CyclePrediction>): CyclePrediction {
     fertileWindowEnd: addDays(now, 8),
     confidence: 'medium',
     averageCycleLength: 28,
+    futureCycles: [],
     ...overrides,
   }
 }

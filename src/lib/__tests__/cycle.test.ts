@@ -329,6 +329,7 @@ describe('isDateInPredictedPeriod', () => {
     fertileWindowEnd: new Date('2025-03-19'),
     confidence: 'medium',
     averageCycleLength: 28,
+    futureCycles: [],
   }
 
   it('예측 생리 기간 내면 true', () => {
@@ -358,6 +359,7 @@ describe('isDateInFertileWindow', () => {
     fertileWindowEnd: new Date('2025-03-19'),
     confidence: 'medium',
     averageCycleLength: 28,
+    futureCycles: [],
   }
 
   it('가임기 내면 true', () => {
@@ -393,6 +395,7 @@ describe('isOvulationDay', () => {
     fertileWindowEnd: new Date('2025-03-19'),
     confidence: 'medium',
     averageCycleLength: 28,
+    futureCycles: [],
   }
 
   it('배란일이면 true', () => {

@@ -49,6 +49,7 @@ export const mockUserSettings: UserSettings = {
   display_name: '테스트',
   average_cycle_length: 28,
   average_period_length: 5,
+  prediction_months: 3,
   notifications_enabled: true,
   health_data_consent: true,
   consent_date: '2025-01-01T00:00:00Z',
