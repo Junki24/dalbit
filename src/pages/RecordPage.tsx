@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, memo } from 'react'
+import { useState, useEffect, useCallback, useRef, memo, Suspense, lazy } from 'react'
 import { format, isToday, differenceInDays, startOfDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useAppStore } from '@/lib/store'
@@ -24,6 +24,8 @@ import {
 } from '@/types'
 import type { SymptomType, FlowIntensity, MedicationType, TimeOfDay, ProtectionMethod } from '@/types'
 import './RecordPage.css'
+
+const LazyStatsPage = lazy(() => import('@/pages/StatsPage').then(m => ({ default: m.StatsPage })))
 
 const ALL_SYMPTOMS: SymptomType[] = [
   'cramps', 'headache', 'backache', 'bloating',
@@ -98,6 +100,7 @@ export function RecordPage() {
     avgPeriodLength: userSettings?.average_period_length ?? 5,
   })
 
+  const [activeTab, setActiveTab] = useState<'record' | 'stats'>('record')
   const [showIntimacyForm, setShowIntimacyForm] = useState(false)
   const [intimacyTimeOfDay, setIntimacyTimeOfDay] = useState<TimeOfDay | null>(null)
   const [intimacyProtection, setIntimacyProtection] = useState<boolean | null>(null)
@@ -393,6 +396,28 @@ export function RecordPage() {
 
   return (
     <div className="record-page">
+      {/* Tab Switcher */}
+      <div className="record-tabs">
+        <button
+          className={`record-tab ${activeTab === 'record' ? 'record-tab--active' : ''}`}
+          onClick={() => setActiveTab('record')}
+        >
+          ✏️ 기록
+        </button>
+        <button
+          className={`record-tab ${activeTab === 'stats' ? 'record-tab--active' : ''}`}
+          onClick={() => setActiveTab('stats')}
+        >
+          📊 통계
+        </button>
+      </div>
+
+      {activeTab === 'stats' ? (
+        <Suspense fallback={<div style={{ textAlign: 'center', padding: 40, color: 'var(--color-text-muted)' }}>로딩 중...</div>}>
+          <LazyStatsPage />
+        </Suspense>
+      ) : (
+      <>
       {/* Date Selector */}
       <div className="date-selector">
         <button className="date-nav-btn" onClick={() => goToDate(-1)} aria-label="이전 날짜">‹</button>
@@ -855,6 +880,8 @@ export function RecordPage() {
           </button>
         )}
       </div>
+      </>
+      )}
     </div>
   )
 }

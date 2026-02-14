@@ -1,6 +1,7 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '@/contexts/AuthContext'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
 import { OfflineBanner } from '@/components/OfflineBanner'
@@ -9,11 +10,16 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import { useHaptic } from '@/hooks/useHaptic'
 import './Layout.css'
 
-const NAV_ITEMS = [
+const FEMALE_NAV_ITEMS = [
   { path: '/', icon: '🏠', label: '홈' },
   { path: '/calendar', icon: '📅', label: '캘린더' },
   { path: '/record', icon: '✏️', label: '기록' },
   { path: '/recommend', icon: '🎁', label: '추천' },
+  { path: '/settings', icon: '⚙️', label: '설정' },
+]
+
+const MALE_NAV_ITEMS = [
+  { path: '/', icon: '💑', label: '홈' },
   { path: '/settings', icon: '⚙️', label: '설정' },
 ]
 
@@ -30,6 +36,9 @@ export function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { userSettings } = useAuth()
+  const isMale = userSettings?.gender === 'male'
+  const navItems = useMemo(() => isMale ? MALE_NAV_ITEMS : FEMALE_NAV_ITEMS, [isMale])
   const { periods } = usePeriods()
   const { phaseInfo } = useCyclePrediction(periods)
   const { vibrate } = useHaptic()
@@ -81,7 +90,7 @@ export function Layout() {
       </main>
 
       <nav className="bottom-nav" role="navigation" aria-label="메인 내비게이션">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive = location.pathname === item.path
           return (
             <button

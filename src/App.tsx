@@ -61,6 +61,20 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+/** Male users see PartnerPage as home, female users see HomePage */
+function GenderAwareHome() {
+  const { userSettings } = useAuth()
+  if (userSettings?.gender === 'male') return <PartnerPage />
+  return <HomePage />
+}
+
+/** Redirect male users from female-only pages */
+function FemaleOnlyRoute({ children }: { children: React.ReactNode }) {
+  const { userSettings } = useAuth()
+  if (userSettings?.gender === 'male') return <Navigate to="/" replace />
+  return <>{children}</>
+}
+
 function AuthCallback() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
@@ -132,12 +146,12 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 >
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/calendar" element={<CalendarPage />} />
-                  <Route path="/record" element={<RecordPage />} />
-                  <Route path="/stats" element={<StatsPage />} />
+                  <Route path="/" element={<GenderAwareHome />} />
+                  <Route path="/calendar" element={<FemaleOnlyRoute><CalendarPage /></FemaleOnlyRoute>} />
+                  <Route path="/record" element={<FemaleOnlyRoute><RecordPage /></FemaleOnlyRoute>} />
+                  <Route path="/stats" element={<FemaleOnlyRoute><StatsPage /></FemaleOnlyRoute>} />
                   <Route path="/partner" element={<PartnerPage />} />
-                  <Route path="/recommend" element={<RecommendPage />} />
+                  <Route path="/recommend" element={<FemaleOnlyRoute><RecommendPage /></FemaleOnlyRoute>} />
                   <Route path="/settings" element={<SettingsPage />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />

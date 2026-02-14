@@ -31,6 +31,7 @@ export function SettingsPage() {
   const [guideOpen, setGuideOpen] = useState(periods.length === 0)
   const [shareResult, setShareResult] = useState<'copied' | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const isMale = userSettings?.gender === 'male'
 
   const handleSaveSettings = async () => {
     setSaving(true)
@@ -262,6 +263,7 @@ export function SettingsPage() {
           average_cycle_length: data.settings.average_cycle_length ?? 28,
           average_period_length: data.settings.average_period_length ?? 5,
           prediction_months: data.settings.prediction_months ?? 3,
+          gender: data.settings.gender ?? 'female',
         })
       }
 
@@ -359,9 +361,16 @@ export function SettingsPage() {
             placeholder="이름 입력"
           />
         </div>
+        <div className="settings-field">
+          <label>사용 모드</label>
+          <span className="settings-value">
+            {isMale ? '👨 남성 (파트너 모드)' : '👩 여성 (주기 관리)'}
+          </span>
+        </div>
       </div>
 
-      {/* Cycle Settings */}
+      {/* Cycle Settings (female only) */}
+      {!isMale && (
       <div className="settings-section">
         <h3 className="settings-section-title">🔄 주기 설정</h3>
         <div className="settings-field">
@@ -399,6 +408,7 @@ export function SettingsPage() {
           {saving ? '저장 중...' : '설정 저장'}
         </button>
       </div>
+      )}
 
       {/* Theme */}
       <div className="settings-section">
@@ -486,28 +496,43 @@ export function SettingsPage() {
 
       {/* Partner Sharing */}
       <div className="settings-section">
-        <h3 className="settings-section-title">💑 파트너 공유</h3>
-        <p className="settings-desc">
-          파트너에게 초대 링크를 보내면 읽기 전용으로 주기 정보를 공유할 수 있어요.
-        </p>
-        {inviteCode ? (
-          <div className="invite-result">
-            <span className="invite-code">{inviteCode}</span>
-            <button className="btn-copy" onClick={handleCopyInvite}>
-              {showCopied ? '복사됨! ✓' : '링크 복사'}
-            </button>
-          </div>
+        <h3 className="settings-section-title">💑 {isMale ? '파트너 연결' : '파트너 공유'}</h3>
+        {isMale ? (
+          <>
+            <p className="settings-desc">
+              파트너로부터 초대 링크를 받아 수락하면 주기 정보를 확인할 수 있어요.
+            </p>
+            <Link to="/" className="btn-partner-view">
+              💑 파트너 페이지 보기
+            </Link>
+          </>
         ) : (
-          <button className="btn-invite" onClick={handleGenerateInvite}>
-            초대 링크 생성
-          </button>
+          <>
+            <p className="settings-desc">
+              파트너에게 초대 링크를 보내면 읽기 전용으로 주기 정보를 공유할 수 있어요.
+            </p>
+            {inviteCode ? (
+              <div className="invite-result">
+                <span className="invite-code">{inviteCode}</span>
+                <button className="btn-copy" onClick={handleCopyInvite}>
+                  {showCopied ? '복사됨! ✓' : '링크 복사'}
+                </button>
+              </div>
+            ) : (
+              <button className="btn-invite" onClick={handleGenerateInvite}>
+                초대 링크 생성
+              </button>
+            )}
+            <Link to="/partner" className="btn-partner-view">
+              💑 파트너 페이지 보기
+            </Link>
+          </>
         )}
-        <Link to="/partner" className="btn-partner-view">
-          💑 파트너 페이지 보기
-        </Link>
       </div>
 
-      {/* Data */}
+      {/* Data (female only) */}
+      {!isMale && (
+      <>
       <div className="settings-section">
         <h3 className="settings-section-title">📦 데이터 관리</h3>
         <button className="btn-export" onClick={handleExportData}>
@@ -539,6 +564,8 @@ export function SettingsPage() {
 
       {/* Migration from other apps */}
       <MigrationSection />
+      </>
+      )}
 
       {/* Privacy */}
       <div className="settings-section">
@@ -554,7 +581,8 @@ export function SettingsPage() {
         )}
       </div>
 
-      {/* Danger Zone */}
+      {/* Danger Zone (female only) */}
+      {!isMale && (
       <div className="settings-section settings-section--danger">
         <h3 className="settings-section-title">⚠️ 위험 구역</h3>
         <p className="settings-desc">
@@ -564,6 +592,7 @@ export function SettingsPage() {
           🗑️ 전체 데이터 삭제
         </button>
       </div>
+      )}
 
       {/* Guide */}
       <div className="settings-section">

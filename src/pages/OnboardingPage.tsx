@@ -6,6 +6,7 @@ import './OnboardingPage.css'
 export function OnboardingPage() {
   const { user, updateUserSettings } = useAuth()
   const navigate = useNavigate()
+  const [gender, setGender] = useState<'female' | 'male'>('female')
   const [displayName, setDisplayName] = useState('')
   const [cycleLength, setCycleLength] = useState(28)
   const [periodLength, setPeriodLength] = useState(5)
@@ -21,8 +22,9 @@ export function OnboardingPage() {
       await updateUserSettings({
         user_id: user.id,
         display_name: displayName || null,
-        average_cycle_length: cycleLength,
-        average_period_length: periodLength,
+        gender,
+        average_cycle_length: gender === 'female' ? cycleLength : 28,
+        average_period_length: gender === 'female' ? periodLength : 5,
         health_data_consent: true,
         consent_date: new Date().toISOString(),
         notifications_enabled: true,
@@ -44,18 +46,45 @@ export function OnboardingPage() {
       </div>
 
       <form className="onboarding-form" onSubmit={handleSubmit}>
+        {/* Gender Selection */}
+        <div className="form-group">
+          <label>사용 모드 선택</label>
+          <div className="gender-select">
+            <button
+              type="button"
+              className={`gender-btn ${gender === 'female' ? 'gender-btn--active' : ''}`}
+              onClick={() => setGender('female')}
+            >
+              <span className="gender-btn-icon">🌸</span>
+              <span className="gender-btn-label">여성</span>
+              <span className="gender-btn-desc">주기 기록 및 관리</span>
+            </button>
+            <button
+              type="button"
+              className={`gender-btn ${gender === 'male' ? 'gender-btn--active' : ''}`}
+              onClick={() => setGender('male')}
+            >
+              <span className="gender-btn-icon">💙</span>
+              <span className="gender-btn-label">남성</span>
+              <span className="gender-btn-desc">파트너 주기 확인</span>
+            </button>
+          </div>
+        </div>
+
         <div className="form-group">
           <label htmlFor="displayName">표시 이름</label>
           <input
             id="displayName"
             type="text"
-            placeholder="예: 지은"
+            placeholder={gender === 'female' ? '예: 지은' : '예: 준기'}
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             className="form-input"
           />
         </div>
 
+        {gender === 'female' && (
+        <>
         <div className="form-group">
           <label htmlFor="cycleLength">평균 생리 주기 (일)</label>
           <div className="number-input">
@@ -115,22 +144,42 @@ export function OnboardingPage() {
           </div>
           <span className="form-hint">보통 3~7일 (기본값: 5일)</span>
         </div>
+        </>
+        )}
 
         <div className="consent-section">
-          <h3>건강 정보 수집·이용 동의</h3>
+          <h3>{gender === 'female' ? '건강 정보 수집·이용 동의' : '파트너 정보 열람 동의'}</h3>
           <div className="consent-info">
-            <p>달빛은 다음 건강 정보를 수집합니다:</p>
-            <ul>
-              <li>생리 시작일 및 종료일</li>
-              <li>출혈량 정보</li>
-              <li>신체 증상 기록</li>
-              <li>기분 상태</li>
-            </ul>
-            <p>
-              수집된 정보는 생리주기 예측 및 건강 기록 목적으로만 사용되며,
-              제3자에게 제공되지 않습니다. 언제든지 설정에서 데이터를
-              내보내거나 삭제할 수 있습니다.
-            </p>
+            {gender === 'female' ? (
+              <>
+                <p>달빛은 다음 건강 정보를 수집합니다:</p>
+                <ul>
+                  <li>생리 시작일 및 종료일</li>
+                  <li>출혈량 정보</li>
+                  <li>신체 증상 기록</li>
+                  <li>기분 상태</li>
+                </ul>
+                <p>
+                  수집된 정보는 생리주기 예측 및 건강 기록 목적으로만 사용되며,
+                  제3자에게 제공되지 않습니다. 언제든지 설정에서 데이터를
+                  내보내거나 삭제할 수 있습니다.
+                </p>
+              </>
+            ) : (
+              <>
+                <p>달빛에서 파트너의 다음 정보를 열람할 수 있습니다:</p>
+                <ul>
+                  <li>현재 주기 단계</li>
+                  <li>다음 생리 예측일</li>
+                  <li>배란일 및 가임기 정보</li>
+                  <li>주기별 행동 요령</li>
+                </ul>
+                <p>
+                  파트너의 상세 증상, 메모 등 민감한 정보는 공유되지 않습니다.
+                  파트너가 공유를 해제하면 더 이상 열람할 수 없습니다.
+                </p>
+              </>
+            )}
           </div>
           <label className="consent-checkbox">
             <input
@@ -138,7 +187,11 @@ export function OnboardingPage() {
               checked={consent}
               onChange={(e) => setConsent(e.target.checked)}
             />
-            <span>건강 정보 수집·이용에 동의합니다 (필수)</span>
+            <span>
+              {gender === 'female'
+                ? '건강 정보 수집·이용에 동의합니다 (필수)'
+                : '파트너 정보 열람에 동의합니다 (필수)'}
+            </span>
           </label>
         </div>
 

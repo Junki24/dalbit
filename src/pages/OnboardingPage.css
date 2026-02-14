@@ -187,3 +187,54 @@
   transform: scale(0.97);
   box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
 }
+
+/* Gender Selection */
+.gender-select {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.gender-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 12px;
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-card);
+  color: var(--color-text);
+}
+
+.gender-btn:active {
+  transform: scale(0.97);
+}
+
+.gender-btn--active {
+  border-color: var(--color-primary);
+  background: rgba(124, 58, 237, 0.1);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.gender-btn-icon {
+  font-size: 2rem;
+}
+
+.gender-btn-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.gender-btn-desc {
+  font-size: 0.73rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1.3;
+}

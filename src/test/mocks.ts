@@ -47,6 +47,7 @@ export const mockUser = {
 export const mockUserSettings: UserSettings = {
   user_id: 'test-user-id',
   display_name: '테스트',
+  gender: 'female',
   average_cycle_length: 28,
   average_period_length: 5,
   prediction_months: 3,

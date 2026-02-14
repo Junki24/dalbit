@@ -32,6 +32,7 @@ export type SymptomType =
 export interface UserSettings {
   user_id: string
   display_name: string | null
+  gender: 'female' | 'male'
   average_cycle_length: number
   average_period_length: number
   prediction_months: number // 1~5, default 3

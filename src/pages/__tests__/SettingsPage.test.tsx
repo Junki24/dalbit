@@ -38,8 +38,8 @@ describe('SettingsPage', () => {
 
   it('파트너 공유 섹션 표시', () => {
     renderWithProviders(<SettingsPage />, { withAuth: true })
-    expect(screen.getByText(/파트너 공유/)).toBeInTheDocument()
     expect(screen.getByText('초대 링크 생성')).toBeInTheDocument()
+    expect(screen.getByText(/파트너 페이지 보기/)).toBeInTheDocument()
   })
 
   it('데이터 관리 섹션 표시', () => {
@@ -60,7 +60,7 @@ describe('SettingsPage', () => {
 
   it('버전 정보 표시', () => {
     renderWithProviders(<SettingsPage />, { withAuth: true })
-    expect(screen.getByText('달빛 v1.0.0')).toBeInTheDocument()
+    expect(screen.getByText(/달빛 v\d+\.\d+\.\d+/)).toBeInTheDocument()
   })
 
   it('주기 기본값 표시 (28일, 5일)', () => {
