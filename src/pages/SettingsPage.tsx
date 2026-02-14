@@ -28,7 +28,7 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [showCopied, setShowCopied] = useState(false)
   const [importing, setImporting] = useState(false)
-  const [guideOpen, setGuideOpen] = useState(false)
+  const [guideOpen, setGuideOpen] = useState(periods.length === 0)
   const [shareResult, setShareResult] = useState<'copied' | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
