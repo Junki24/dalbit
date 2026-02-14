@@ -13,6 +13,7 @@
   text-align: center;
   padding: 60px 24px;
   gap: 12px;
+  animation: fadeInUp 0.4s ease-out;
 }
 
 .stats-empty-icon {
@@ -78,7 +79,12 @@
   flex-direction: column;
   gap: 4px;
   text-align: center;
+  animation: scaleIn 0.3s ease-out both;
 }
+
+.stats-grid .stat-card:nth-child(2) { animation-delay: 0.06s; }
+.stats-grid .stat-card:nth-child(3) { animation-delay: 0.12s; }
+.stats-grid .stat-card:nth-child(4) { animation-delay: 0.18s; }
 
 .stat-value {
   font-size: 1.2rem;
@@ -213,9 +219,21 @@
   background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   border-radius: 4px 4px 0 0;
   min-height: 4px;
-  transition: height 0.3s ease;
   box-shadow: 0 0 8px rgba(124, 58, 237, 0.15);
+  animation: barGrow 0.5s ease-out both;
+  transform-origin: bottom;
 }
+
+@keyframes barGrow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+.trend-bar-wrapper:nth-child(2) .trend-bar { animation-delay: 0.06s; }
+.trend-bar-wrapper:nth-child(3) .trend-bar { animation-delay: 0.12s; }
+.trend-bar-wrapper:nth-child(4) .trend-bar { animation-delay: 0.18s; }
+.trend-bar-wrapper:nth-child(5) .trend-bar { animation-delay: 0.24s; }
+.trend-bar-wrapper:nth-child(6) .trend-bar { animation-delay: 0.3s; }
 
 .trend-month {
   font-size: 0.65rem;

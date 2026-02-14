@@ -15,6 +15,7 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+  box-shadow: 0 1px 12px rgba(124, 58, 237, 0.06);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -48,6 +49,7 @@
   padding: 16px 20px;
   padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .bottom-nav {
@@ -80,16 +82,43 @@
   cursor: pointer;
   padding: 6px 14px;
   border-radius: 10px;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
 
-.nav-item:active {
-  transform: scale(0.92);
+.nav-item:active .nav-icon {
+  animation: navTap 0.25s ease;
+}
+
+@keyframes navTap {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.85); }
+  70% { transform: scale(1.06); }
+  100% { transform: scale(1); }
 }
 
 .nav-item--active {
   color: var(--color-primary-light);
+}
+
+.nav-item--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-primary-light);
+  box-shadow: 0 0 6px rgba(167, 139, 250, 0.5);
+  animation: navIndicator 0.25s ease-out;
+}
+
+@keyframes navIndicator {
+  from { width: 0; opacity: 0; }
+  to { width: 16px; opacity: 1; }
 }
 
 .nav-item--active .nav-icon {
@@ -98,7 +127,7 @@
 
 .nav-icon {
   font-size: 1.3rem;
-  transition: filter 0.2s;
+  transition: filter 0.2s, transform 0.15s;
 }
 
 .nav-label {

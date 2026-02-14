@@ -54,6 +54,47 @@
   background: rgba(148, 163, 184, 0.4);
 }
 
+[data-theme="light"] .header {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom-color: rgba(203, 213, 225, 0.5);
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .bottom-nav {
+  background: rgba(255, 255, 255, 0.92);
+  border-top-color: rgba(203, 213, 225, 0.5);
+}
+
+[data-theme="light"] .date-nav-btn,
+[data-theme="light"] .month-nav-btn {
+  background: rgba(241, 245, 249, 0.8);
+}
+
+[data-theme="light"] .period-toggle {
+  background: rgba(241, 245, 249, 0.6);
+}
+
+[data-theme="light"] .symptom-btn {
+  background: rgba(241, 245, 249, 0.6);
+}
+
+[data-theme="light"] .notes-input {
+  background: rgba(241, 245, 249, 0.7);
+}
+
+[data-theme="light"] .stat-card,
+[data-theme="light"] .history-item,
+[data-theme="light"] .symptom-rank-item,
+[data-theme="light"] .severity-item,
+[data-theme="light"] .correlation-item {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.3);
+}
+
+[data-theme="light"] .weekly-day {
+  background: rgba(241, 245, 249, 0.7);
+}
+
 *,
 *::before,
 *::after {
@@ -170,4 +211,52 @@ select {
 
 * {
   touch-action: manipulation;
+}
+
+/* ── Global Animations ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes subtlePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes growUp {
+  from { transform: scaleY(0); transform-origin: bottom; }
+  to { transform: scaleY(1); transform-origin: bottom; }
+}
+
+/* Focus visible for all interactive elements */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
 }
