@@ -38,15 +38,18 @@ export function usePeriods() {
       flow_intensities?: Record<string, FlowIntensity>
     }) => {
       if (!user) throw new Error('로그인이 필요합니다')
+      // upsert: soft-deleted 행이 같은 (user_id, start_date)로 남아있을 수 있으므로
+      // insert 대신 upsert로 처리하여 UNIQUE 제약 충돌 방지
       const { data, error } = await supabase
         .from('periods')
-        .insert({
+        .upsert({
           user_id: user.id,
           start_date,
           end_date: end_date ?? null,
           flow_intensity: flow_intensity ?? null,
           flow_intensities: flow_intensities ?? {},
-        })
+          deleted_at: null,
+        }, { onConflict: 'user_id,start_date' })
         .select()
         .single()
 
