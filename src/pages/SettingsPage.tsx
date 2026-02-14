@@ -28,6 +28,8 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [showCopied, setShowCopied] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [guideOpen, setGuideOpen] = useState(false)
+  const [shareResult, setShareResult] = useState<'copied' | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleSaveSettings = async () => {
@@ -274,6 +276,31 @@ export function SettingsPage() {
     }
   }
 
+  const handleShareApp = async () => {
+    const shareUrl = window.location.origin
+    const shareData = {
+      title: '달빛 — 생리주기 트래커',
+      text: '커플을 위한 생리주기 트래킹 앱이에요. 무료로 사용할 수 있습니다!',
+      url: shareUrl,
+    }
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else {
+        await navigator.clipboard.writeText(shareUrl)
+        setShareResult('copied')
+        setTimeout(() => setShareResult(null), 2000)
+      }
+    } catch {
+      // User cancelled share or clipboard failed
+      try {
+        await navigator.clipboard.writeText(shareUrl)
+        setShareResult('copied')
+        setTimeout(() => setShareResult(null), 2000)
+      } catch { /* ignore */ }
+    }
+  }
+
   const handleCopyInvite = async () => {
     if (!inviteCode) return
     const url = `${window.location.origin}/invite/${inviteCode}`
@@ -440,13 +467,15 @@ export function SettingsPage() {
              >
                🔔 테스트 알림 보내기
              </button>
-             <button
-               className="btn-export"
-               onClick={handleServerPushTest}
-               style={{ marginTop: '8px' }}
-             >
-               🚀 서버 푸시 테스트
-             </button>
+             {user?.email === 'junki7051@gmail.com' && (
+               <button
+                 className="btn-export"
+                 onClick={handleServerPushTest}
+                 style={{ marginTop: '8px' }}
+               >
+                 🚀 서버 푸시 테스트
+               </button>
+             )}
            </>
          )}
          <p className="settings-hint">
@@ -536,12 +565,95 @@ export function SettingsPage() {
         </button>
       </div>
 
+      {/* Guide */}
+      <div className="settings-section">
+        <button
+          className="guide-toggle"
+          onClick={() => setGuideOpen((v) => !v)}
+        >
+          <h3 className="settings-section-title" style={{ marginBottom: 0 }}>📖 사용 가이드</h3>
+          <span className={`guide-arrow ${guideOpen ? 'guide-arrow--open' : ''}`}>›</span>
+        </button>
+        {guideOpen && (
+          <div className="guide-content">
+            <div className="guide-item">
+              <span className="guide-icon">🏠</span>
+              <div>
+                <strong>홈</strong>
+                <p>오늘의 주기 상태, D-day, 컨디션 인사이트를 한눈에 확인해요. 주간 미니 캘린더에서 이번 주 예측도 볼 수 있어요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">📅</span>
+              <div>
+                <strong>캘린더</strong>
+                <p>생리일(빨강), 예상 생리일(연빨강), 가임기(파랑), 배란일(보라)이 색으로 구분돼요. 날짜를 탭하면 상세 정보를 확인하고 기록 페이지로 이동할 수 있어요. 하단에 주기 기록 표도 있어요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">✏️</span>
+              <div>
+                <strong>기록</strong>
+                <p>생리 시작/종료, 유량, 증상, 약 복용, 관계일, 메모를 한 화면에서 기록해요. 날짜를 좌우로 넘기면 다른 날짜도 기록할 수 있어요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">📊</span>
+              <div>
+                <strong>통계</strong>
+                <p>평균 주기/기간, 증상 패턴, 관계일 트렌드를 분석해요. PDF 리포트로 내보내기도 가능해요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">💑</span>
+              <div>
+                <strong>파트너 공유</strong>
+                <p>설정에서 초대 링크를 생성하면 파트너가 읽기 전용으로 주기 정보를 확인할 수 있어요. 파트너에게 맞춤 행동 요령도 제공돼요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">🔮</span>
+              <div>
+                <strong>주기 예측</strong>
+                <p>기록이 쌓일수록 예측이 정확해져요. 설정에서 예측 개월 수(1~5)를 조절할 수 있어요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
+              <span className="guide-icon">🔔</span>
+              <div>
+                <strong>알림</strong>
+                <p>알림을 켜면 매일 저녁 9시에 주기 상태에 맞는 스마트 알림을 받아요. 생리 예정, 배란일, 가임기 시작 등을 미리 알려줘요.</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Developer Comment */}
+      <div className="settings-section dev-comment">
+        <h3 className="settings-section-title">💌 개발자의 말</h3>
+        <p className="dev-comment-text">
+          안녕하세요, 개발자 홍준기입니다.
+        </p>
+        <p className="dev-comment-text">
+          아내 유림이가 생리주기 앱을 좀 더 편하게, 함께 볼 수 있으면 좋겠다는 마음에서 달빛을 만들게 되었어요.
+        </p>
+        <p className="dev-comment-text">
+          이 앱은 무료로 운영되고 있어서 부담 없이 사용하셔도 됩니다. 아래 공유 버튼으로 주변에 알려주시면 큰 힘이 돼요!
+        </p>
+      </div>
+
+      {/* Share */}
+      <button className="btn-share-app" onClick={handleShareApp}>
+        {shareResult === 'copied' ? '✓ 링크가 복사되었어요!' : '🔗 달빛 공유하기'}
+      </button>
+
       {/* Sign Out */}
       <button className="btn-signout" onClick={signOut}>
         로그아웃
       </button>
 
-      <p className="settings-version">달빛 v1.0.0</p>
+      <p className="settings-version">달빛 v1.7.0</p>
     </div>
   )
 }

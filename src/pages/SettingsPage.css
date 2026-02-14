@@ -327,6 +327,109 @@
   transform: translateX(22px);
 }
 
+/* ── Guide Section ── */
+.guide-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.guide-arrow {
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+  transition: transform 0.25s ease;
+}
+
+.guide-arrow--open {
+  transform: rotate(90deg);
+}
+
+.guide-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.guide-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.guide-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+  padding-top: 1px;
+}
+
+.guide-item strong {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 3px;
+}
+
+.guide-item p {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── Developer Comment ── */
+.dev-comment {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.06) 0%, rgba(168, 85, 247, 0.04) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.15);
+}
+
+.dev-comment-text {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  line-height: 1.65;
+  margin: 0 0 8px;
+}
+
+.dev-comment-text:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Share Button ── */
+.btn-share-app {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(124, 58, 237, 0.35);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.12) 0%, rgba(168, 85, 247, 0.08) 100%);
+  color: var(--color-primary-light);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  letter-spacing: 0.01em;
+}
+
+.btn-share-app:active {
+  background: rgba(124, 58, 237, 0.22);
+  transform: scale(0.98);
+}
+
 .settings-version {
   text-align: center;
   font-size: 0.7rem;
