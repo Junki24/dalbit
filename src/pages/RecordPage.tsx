@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, memo } from 'react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useAppStore } from '@/lib/store'
@@ -26,6 +26,46 @@ const ALL_SYMPTOMS: SymptomType[] = [
 const FLOW_OPTIONS: FlowIntensity[] = ['spotting', 'light', 'medium', 'heavy']
 
 const SEVERITY_LABELS = ['', '약함', '경미', '보통', '강함', '심함'] as const
+
+/** Memo'd symptom button — only re-renders when its active state/severity changes */
+const SymptomButton = memo(function SymptomButton({
+  type,
+  isActive,
+  severity,
+  onToggle,
+  onSeverityToggle,
+}: {
+  type: SymptomType
+  isActive: boolean
+  severity: number
+  onToggle: (type: SymptomType) => void
+  onSeverityToggle: (type: SymptomType) => void
+}) {
+  return (
+    <button
+      className={`symptom-btn ${isActive ? 'symptom-btn--active' : ''}`}
+      onClick={() => onToggle(type)}
+      onContextMenu={(e) => {
+        e.preventDefault()
+        if (isActive) onSeverityToggle(type)
+      }}
+    >
+      <span className="symptom-btn-icon">{SYMPTOM_ICONS[type]}</span>
+      <span className="symptom-btn-label">{SYMPTOM_LABELS[type]}</span>
+      {isActive && (
+        <span
+          className="symptom-severity-badge"
+          onClick={(e) => {
+            e.stopPropagation()
+            onSeverityToggle(type)
+          }}
+        >
+          {severity}
+        </span>
+      )}
+    </button>
+  )
+})
 
 export function RecordPage() {
   const { confirm } = useToast()
@@ -155,6 +195,10 @@ export function RecordPage() {
     }
   }
 
+  const handleSeverityToggle = useCallback((type: SymptomType) => {
+    setSelectedSeveritySymptom((prev) => prev === type ? null : type)
+  }, [])
+
   const activeSymptomTypes = new Set(symptoms.map((s) => s.symptom_type))
 
   const getSymptomSeverity = (type: SymptomType): number => {
@@ -255,68 +299,32 @@ export function RecordPage() {
         <div className="symptom-category">
           <h4 className="symptom-category-title">신체 증상</h4>
           <div className="symptom-grid">
-            {ALL_SYMPTOMS.filter((s) => !s.startsWith('mood_')).map((type) => {
-              const isActive = activeSymptomTypes.has(type)
-              return (
-                <button
-                  key={type}
-                  className={`symptom-btn ${isActive ? 'symptom-btn--active' : ''}`}
-                  onClick={() => handleSymptomToggle(type)}
-                  onContextMenu={(e) => {
-                    e.preventDefault()
-                    if (isActive) setSelectedSeveritySymptom(selectedSeveritySymptom === type ? null : type)
-                  }}
-                >
-                  <span className="symptom-btn-icon">{SYMPTOM_ICONS[type]}</span>
-                  <span className="symptom-btn-label">{SYMPTOM_LABELS[type]}</span>
-                  {isActive && (
-                    <span
-                      className="symptom-severity-badge"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setSelectedSeveritySymptom(selectedSeveritySymptom === type ? null : type)
-                      }}
-                    >
-                      {getSymptomSeverity(type)}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
+            {ALL_SYMPTOMS.filter((s) => !s.startsWith('mood_')).map((type) => (
+              <SymptomButton
+                key={type}
+                type={type}
+                isActive={activeSymptomTypes.has(type)}
+                severity={getSymptomSeverity(type)}
+                onToggle={handleSymptomToggle}
+                onSeverityToggle={handleSeverityToggle}
+              />
+            ))}
           </div>
         </div>
 
         <div className="symptom-category">
           <h4 className="symptom-category-title">기분</h4>
           <div className="symptom-grid">
-            {ALL_SYMPTOMS.filter((s) => s.startsWith('mood_')).map((type) => {
-              const isActive = activeSymptomTypes.has(type)
-              return (
-                <button
-                  key={type}
-                  className={`symptom-btn ${isActive ? 'symptom-btn--active' : ''}`}
-                  onClick={() => handleSymptomToggle(type)}
-                  onContextMenu={(e) => {
-                    e.preventDefault()
-                    if (isActive) setSelectedSeveritySymptom(selectedSeveritySymptom === type ? null : type)
-                  }}
-                >
-                  <span className="symptom-btn-icon">{SYMPTOM_ICONS[type]}</span>
-                  <span className="symptom-btn-label">{SYMPTOM_LABELS[type]}</span>
-                  {isActive && (
-                    <span
-                      className="symptom-severity-badge"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setSelectedSeveritySymptom(selectedSeveritySymptom === type ? null : type)
-                      }}
-                    >
-                      {getSymptomSeverity(type)}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
+            {ALL_SYMPTOMS.filter((s) => s.startsWith('mood_')).map((type) => (
+              <SymptomButton
+                key={type}
+                type={type}
+                isActive={activeSymptomTypes.has(type)}
+                severity={getSymptomSeverity(type)}
+                onToggle={handleSymptomToggle}
+                onSeverityToggle={handleSeverityToggle}
+              />
+            ))}
           </div>
         </div>
 

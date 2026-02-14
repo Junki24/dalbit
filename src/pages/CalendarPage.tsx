@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, memo } from 'react'
 import {
   format,
   startOfMonth,
@@ -30,6 +30,54 @@ import type { CalendarDay, SymptomType } from '@/types'
 import './CalendarPage.css'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+
+/** Memo'd calendar day cell — only re-renders when its own day data or selection changes */
+const CalendarDayCell = memo(function CalendarDayCell({
+  day,
+  isSelected,
+  onClick,
+}: {
+  day: CalendarDay
+  isSelected: boolean
+  onClick: (day: CalendarDay) => void
+}) {
+  const classes = ['calendar-day']
+  if (!day.isCurrentMonth) classes.push('calendar-day--outside')
+  if (day.isToday) classes.push('calendar-day--today')
+  if (day.isPeriod) classes.push('calendar-day--period')
+  if (day.isPredictedPeriod) classes.push('calendar-day--predicted')
+  if (day.isFertile && !day.isOvulation) classes.push('calendar-day--fertile')
+  if (day.isOvulation) classes.push('calendar-day--ovulation')
+  if (isSelected) classes.push('calendar-day--selected')
+
+  const dayLabel = format(day.date, 'M월 d일 EEEE', { locale: ko })
+  const statusParts: string[] = []
+  if (day.isPeriod) statusParts.push('생리')
+  if (day.isPredictedPeriod) statusParts.push('예상 생리')
+  if (day.isFertile) statusParts.push('가임기')
+  if (day.isOvulation) statusParts.push('배란일')
+  if (day.symptoms.length > 0) statusParts.push(`증상 ${day.symptoms.length}개`)
+  const ariaLabel = statusParts.length > 0
+    ? `${dayLabel}, ${statusParts.join(', ')}`
+    : dayLabel
+
+  return (
+    <button
+      className={classes.join(' ')}
+      onClick={() => onClick(day)}
+      aria-label={ariaLabel}
+      aria-selected={isSelected}
+      aria-current={day.isToday ? 'date' : undefined}
+    >
+      <span className="calendar-day-number">
+        {format(day.date, 'd')}
+      </span>
+      {day.symptoms.length > 0 && (
+        <span className="calendar-day-dot" aria-hidden="true" />
+      )}
+    </button>
+  )
+})
 
 export function CalendarPage() {
   const navigate = useNavigate()
@@ -140,45 +188,14 @@ export function CalendarPage() {
         ))}
 
         {/* Calendar Days */}
-        {calendarDays.map((day) => {
-          const classes = ['calendar-day']
-          if (!day.isCurrentMonth) classes.push('calendar-day--outside')
-          if (day.isToday) classes.push('calendar-day--today')
-          if (day.isPeriod) classes.push('calendar-day--period')
-          if (day.isPredictedPeriod) classes.push('calendar-day--predicted')
-          if (day.isFertile && !day.isOvulation) classes.push('calendar-day--fertile')
-          if (day.isOvulation) classes.push('calendar-day--ovulation')
-          if (selectedDay?.dateStr === day.dateStr) classes.push('calendar-day--selected')
-
-          const dayLabel = format(day.date, 'M월 d일 EEEE', { locale: ko })
-          const statusParts: string[] = []
-          if (day.isPeriod) statusParts.push('생리')
-          if (day.isPredictedPeriod) statusParts.push('예상 생리')
-          if (day.isFertile) statusParts.push('가임기')
-          if (day.isOvulation) statusParts.push('배란일')
-          if (day.symptoms.length > 0) statusParts.push(`증상 ${day.symptoms.length}개`)
-          const ariaLabel = statusParts.length > 0
-            ? `${dayLabel}, ${statusParts.join(', ')}`
-            : dayLabel
-
-          return (
-            <button
-              key={day.dateStr}
-              className={classes.join(' ')}
-              onClick={() => handleDayClick(day)}
-              aria-label={ariaLabel}
-              aria-selected={selectedDay?.dateStr === day.dateStr}
-              aria-current={day.isToday ? 'date' : undefined}
-            >
-              <span className="calendar-day-number">
-                {format(day.date, 'd')}
-              </span>
-              {day.symptoms.length > 0 && (
-                <span className="calendar-day-dot" aria-hidden="true" />
-              )}
-            </button>
-          )
-        })}
+        {calendarDays.map((day) => (
+          <CalendarDayCell
+            key={day.dateStr}
+            day={day}
+            isSelected={selectedDay?.dateStr === day.dateStr}
+            onClick={handleDayClick}
+          />
+        ))}
       </div>
 
       {/* Selected Day Detail Panel */}
