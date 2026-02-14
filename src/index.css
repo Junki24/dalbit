@@ -323,6 +323,11 @@
 [data-theme="light"] .btn-import {
   background: rgba(124, 58, 237, 0.04);
 }
+[data-theme="light"] .btn-feedback {
+  background: rgba(124, 58, 237, 0.04);
+  border-color: rgba(124, 58, 237, 0.2);
+  color: var(--color-primary);
+}
 
 /* ── Login Page light overrides ── */
 [data-theme="light"] .login-page {

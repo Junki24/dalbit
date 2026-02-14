@@ -17,6 +17,7 @@
 | **PDF 리포트** | 주기·증상·관계일 요약 PDF 생성 |
 | **AI 마이그레이션** | 다른 앱 스크린샷 → AI 분석 → 자동 데이터 이관 |
 | **Push 알림** | 생리 예정일 리마인더, 백그라운드 Web Push |
+| **성별 모드** | 여성(전체 기능) / 남성(파트너 대시보드) 분기, 온보딩·설정에서 전환 |
 | **다크/라이트 모드** | 글래스모피즘 moonlight 테마 |
 | **PWA** | 설치 가능, 오프라인 캐시, 앱처럼 동작 |
 
@@ -41,7 +42,7 @@ dalbit/
 ├── public/                     # PWA 아이콘, manifest
 ├── e2e/                        # Playwright E2E 테스트
 ├── supabase/
-│   ├── migrations/             # 11개 SQL 마이그레이션
+│   ├── migrations/             # 12개 SQL 마이그레이션
 │   │   ├── 20260214_push_subscriptions.sql
 │   │   ├── 20260215_push_cron.sql
 │   │   ├── 20260216_fix_invite_rls.sql
@@ -52,7 +53,8 @@ dalbit/
 │   │   ├── 20260221_medications_and_tips.sql
 │   │   ├── 20260222_tips_seed_data.sql
 │   │   ├── 20260223_intimacy_records.sql
-│   │   └── 20260224_prediction_months.sql
+│   │   ├── 20260224_prediction_months.sql
+│   │   └── 20260225_gender.sql
 │   └── functions/              # Supabase Edge Functions
 │       ├── analyze-screenshot/ # AI 스크린샷 분석
 │       └── send-notifications/ # Push 알림 발송
@@ -119,7 +121,7 @@ dalbit/
 | `intimacy_records` | 관계일 기록 (시간대, 피임 여부/방법, 메모) |
 | `medications` | 약 등록 정보 |
 | `medication_intakes` | 약 복용 기록 |
-| `user_settings` | 사용자 설정 (주기 길이, 예측 개월 수, 알림 등) |
+| `user_settings` | 사용자 설정 (주기 길이, 예측 개월 수, 알림, 성별 모드 등) |
 | `partner_sharing` | 파트너 연결 + 공유 범위 |
 | `daily_notes` | 일일 메모 |
 | `pad_preferences` | 생리대 선호 설정 |
@@ -236,6 +238,23 @@ npm run dev
   - DB 마이그레이션: `prediction_months` 컬럼
 - 캘린더 주기 기록 표 — 시작일/종료일/기간/주기, 최근 6건 + 더보기
 - 202개 테스트 유지 (all pass)
+
+### v1.8 — 성별 모드 + 설정 개편 (2026-02-15)
+- 성별 기반 UX 분기
+  - 여성 모드: 전체 기능 (주기 기록, 캘린더, 통계, 추천, 설정)
+  - 남성 모드: 파트너 대시보드 중심 (홈/추천/설정 3탭)
+  - 온보딩에서 성별 선택, 설정에서 모드 전환 가능
+  - DB 마이그레이션: `gender` 컬럼
+- 통계 페이지 → 기록 탭 내 서브탭으로 통합 (기록|통계 전환)
+- 설정 페이지 개편
+  - 💌 개발자의 말 — 최상단, 접기/펼치기
+  - 📖 사용 가이드 — 프로필 아래, 접기/펼치기, 첫 방문자 자동 오픈
+  - 사용 모드 변경 토글 — 프로필 섹션 내
+  - 🔗 공유하기 + 💬 피드백 보내기 버튼
+- 가이드 콘텐츠 보강
+  - 종료 버튼으로 실제 종료일 기록 팁
+  - 다른 앱 스크린샷 마이그레이션 가이드
+- 라이트모드 피드백 버튼 색상 보정
 
 ## 라이선스
 
