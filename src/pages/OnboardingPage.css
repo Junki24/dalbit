@@ -1,5 +1,5 @@
 .onboarding-page {
-  min-height: 100dvh;
+  height: 100dvh;
   padding: 40px 24px;
   padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
   max-width: 480px;
