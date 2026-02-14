@@ -177,7 +177,10 @@ export function HomePage() {
   const navigate = useNavigate()
   const { userSettings } = useAuth()
   const { periods, isLoading } = usePeriods()
-  const { prediction, cycleDay, phaseInfo } = useCyclePrediction(periods)
+  const { prediction, cycleDay, phaseInfo } = useCyclePrediction(periods, {
+    predictionMonths: userSettings?.prediction_months ?? 3,
+    avgPeriodLength: userSettings?.average_period_length ?? 5,
+  })
   const todayStr = format(new Date(), 'yyyy-MM-dd')
   const { symptoms: todaySymptoms } = useSymptoms(todayStr)
   const { symptoms: allSymptoms } = useSymptoms()

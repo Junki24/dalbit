@@ -10,7 +10,17 @@ interface CyclePredictionResult {
   lastPeriod: Period | null
 }
 
-export function useCyclePrediction(periods: Period[]): CyclePredictionResult {
+interface CyclePredictionOptions {
+  predictionMonths?: number  // 1~5, default 3
+  avgPeriodLength?: number   // default 5
+}
+
+export function useCyclePrediction(
+  periods: Period[],
+  options: CyclePredictionOptions = {},
+): CyclePredictionResult {
+  const { predictionMonths = 3, avgPeriodLength = 5 } = options
+
   return useMemo(() => {
     if (periods.length === 0) {
       return { prediction: null, cycleDay: null, phaseInfo: null, lastPeriod: null }
@@ -21,7 +31,7 @@ export function useCyclePrediction(periods: Period[]): CyclePredictionResult {
     )
 
     const lastPeriod = sorted[0]
-    const prediction = calculateCyclePrediction(periods)
+    const prediction = calculateCyclePrediction(periods, predictionMonths, avgPeriodLength)
     const avgCycleLength = prediction?.averageCycleLength ?? 28
 
     const lastPeriodDate = parseISO(lastPeriod.start_date)
@@ -29,5 +39,5 @@ export function useCyclePrediction(periods: Period[]): CyclePredictionResult {
     const phaseInfo = getCyclePhaseInfo(cycleDay, avgCycleLength)
 
     return { prediction, cycleDay, phaseInfo, lastPeriod }
-  }, [periods])
+  }, [periods, predictionMonths, avgPeriodLength])
 }

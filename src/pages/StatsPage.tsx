@@ -34,7 +34,10 @@ export function StatsPage() {
   const { intakes: medicationIntakes } = useMedicationIntakes()
   const { userSettings } = useAuth()
   const [showAllCycles, setShowAllCycles] = useState(false)
-  const { prediction } = useCyclePrediction(periods)
+  const { prediction } = useCyclePrediction(periods, {
+    predictionMonths: userSettings?.prediction_months ?? 3,
+    avgPeriodLength: userSettings?.average_period_length ?? 5,
+  })
   const avgCycleLength = prediction?.averageCycleLength ?? userSettings?.average_cycle_length ?? 28
   const symptomPatterns = useSymptomPatterns(periods, symptoms, avgCycleLength)
   const { records: intimacyRecords } = useIntimacy()

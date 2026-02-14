@@ -23,6 +23,7 @@ export function SettingsPage() {
   const [displayName, setDisplayName] = useState(userSettings?.display_name ?? '')
   const [cycleLength, setCycleLength] = useState(userSettings?.average_cycle_length ?? 28)
   const [periodLength, setPeriodLength] = useState(userSettings?.average_period_length ?? 5)
+  const [predictionMonths, setPredictionMonths] = useState(userSettings?.prediction_months ?? 3)
   const [inviteCode, setInviteCode] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [showCopied, setShowCopied] = useState(false)
@@ -35,6 +36,7 @@ export function SettingsPage() {
       display_name: displayName || null,
       average_cycle_length: cycleLength,
       average_period_length: periodLength,
+      prediction_months: predictionMonths,
     })
     setSaving(false)
   }
@@ -257,6 +259,7 @@ export function SettingsPage() {
           display_name: data.settings.display_name ?? null,
           average_cycle_length: data.settings.average_cycle_length ?? 28,
           average_period_length: data.settings.average_period_length ?? 5,
+          prediction_months: data.settings.prediction_months ?? 3,
         })
       }
 
@@ -350,6 +353,17 @@ export function SettingsPage() {
             <button onClick={() => setPeriodLength((v) => Math.min(10, v + 1))} aria-label="기간 늘리기">+</button>
           </div>
         </div>
+        <div className="settings-field">
+          <label>예측 개월 수</label>
+          <div className="compact-number-input">
+            <button onClick={() => setPredictionMonths((v) => Math.max(1, v - 1))} aria-label="예측 줄이기">−</button>
+            <span>{predictionMonths}개월</span>
+            <button onClick={() => setPredictionMonths((v) => Math.min(5, v + 1))} aria-label="예측 늘리기">+</button>
+          </div>
+        </div>
+        <p className="settings-hint">
+          캘린더에 표시할 예측 주기 수입니다. 1~5개월 범위에서 설정할 수 있습니다.
+        </p>
         <button
           className="btn-save"
           onClick={handleSaveSettings}

@@ -5,14 +5,16 @@ import {
   isWithinInterval,
   startOfDay,
 } from 'date-fns'
-import type { Period, CyclePrediction, CyclePhaseInfo, FlowIntensity } from '@/types'
+import type { Period, CyclePrediction, FutureCycle, CyclePhaseInfo, FlowIntensity } from '@/types'
 
 /**
  * Calculate cycle prediction based on period history
  * Uses average of last 3 cycles (calendar method)
  */
 export function calculateCyclePrediction(
-  periods: Period[]
+  periods: Period[],
+  predictionMonths: number = 3,
+  avgPeriodLength: number = 5,
 ): CyclePrediction | null {
   if (periods.length === 0) return null
 
@@ -46,12 +48,33 @@ export function calculateCyclePrediction(
   if (totalPeriods >= 6) confidence = 'high'
   else if (totalPeriods >= 3) confidence = 'medium'
 
-  // Calculate predictions
+  // Calculate first prediction (next cycle)
   const nextPeriodDate = addDays(lastPeriod, avgCycleLength)
   const ovulationDay = avgCycleLength - 14
   const ovulationDate = addDays(lastPeriod, ovulationDay)
   const fertileWindowStart = addDays(lastPeriod, ovulationDay - 5)
   const fertileWindowEnd = addDays(lastPeriod, ovulationDay + 1)
+
+  // Generate N future cycles (predictionMonths cycles ahead)
+  // Each cycle: periodStart, and ovulation = periodStart + (avgCycleLength - 14)
+  // (ovulation occurs ~14 days before the NEXT period)
+  const clampedMonths = Math.max(1, Math.min(5, predictionMonths))
+  const futureCycles: FutureCycle[] = []
+  for (let i = 0; i < clampedMonths; i++) {
+    const periodStart = addDays(lastPeriod, (i + 1) * avgCycleLength)
+    const periodEnd = addDays(periodStart, avgPeriodLength - 1)
+    const futureOvulation = addDays(periodStart, avgCycleLength - 14)
+    const futureFertileStart = addDays(futureOvulation, -5)
+    const futureFertileEnd = addDays(futureOvulation, 1)
+
+    futureCycles.push({
+      periodStart,
+      periodEnd,
+      ovulationDate: futureOvulation,
+      fertileWindowStart: futureFertileStart,
+      fertileWindowEnd: futureFertileEnd,
+    })
+  }
 
   return {
     nextPeriodDate,
@@ -60,6 +83,7 @@ export function calculateCyclePrediction(
     fertileWindowEnd,
     confidence,
     averageCycleLength: avgCycleLength,
+    futureCycles,
   }
 }
 
@@ -151,7 +175,7 @@ export function isDateInPeriod(dateStr: string, periods: Period[]): Period | nul
 }
 
 /**
- * Check if a date is in the predicted period window
+ * Check if a date is in the predicted period window (any future cycle)
  */
 export function isDateInPredictedPeriod(
   date: Date,
@@ -159,34 +183,61 @@ export function isDateInPredictedPeriod(
   avgPeriodLength: number = 5
 ): boolean {
   if (!prediction) return false
+  const d = startOfDay(date)
+
+  // Check all future cycles
+  for (const cycle of prediction.futureCycles ?? []) {
+    const start = startOfDay(cycle.periodStart)
+    const end = startOfDay(cycle.periodEnd)
+    if (isWithinInterval(d, { start, end })) return true
+  }
+
+  // Fallback: check nextPeriodDate (first cycle, backward compat)
   const start = startOfDay(prediction.nextPeriodDate)
   const end = addDays(start, avgPeriodLength - 1)
-  return isWithinInterval(startOfDay(date), { start, end })
+  return isWithinInterval(d, { start, end })
 }
 
 /**
- * Check if a date is in the fertile window
+ * Check if a date is in the fertile window (any future cycle)
  */
 export function isDateInFertileWindow(
   date: Date,
   prediction: CyclePrediction | null
 ): boolean {
   if (!prediction) return false
-  return isWithinInterval(startOfDay(date), {
+  const d = startOfDay(date)
+
+  // Check all future cycles
+  for (const cycle of prediction.futureCycles ?? []) {
+    if (isWithinInterval(d, {
+      start: startOfDay(cycle.fertileWindowStart),
+      end: startOfDay(cycle.fertileWindowEnd),
+    })) return true
+  }
+
+  // Fallback: check current cycle's fertile window
+  return isWithinInterval(d, {
     start: startOfDay(prediction.fertileWindowStart),
     end: startOfDay(prediction.fertileWindowEnd),
   })
 }
 
 /**
- * Check if a date is ovulation day
+ * Check if a date is ovulation day (any future cycle)
  */
 export function isOvulationDay(
   date: Date,
   prediction: CyclePrediction | null
 ): boolean {
   if (!prediction) return false
-  return (
-    startOfDay(date).getTime() === startOfDay(prediction.ovulationDate).getTime()
-  )
+  const d = startOfDay(date).getTime()
+
+  // Check all future cycles
+  for (const cycle of prediction.futureCycles ?? []) {
+    if (d === startOfDay(cycle.ovulationDate).getTime()) return true
+  }
+
+  // Fallback: check current cycle's ovulation
+  return d === startOfDay(prediction.ovulationDate).getTime()
 }

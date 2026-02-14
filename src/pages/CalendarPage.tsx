@@ -10,6 +10,8 @@ import {
   subMonths,
   isSameMonth,
   isSameDay,
+  differenceInDays,
+  parseISO,
 } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
@@ -17,6 +19,7 @@ import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { useIntimacy } from '@/hooks/useIntimacy'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
+import { useAuth } from '@/contexts/AuthContext'
 import { useAppStore } from '@/lib/store'
 import { CalendarPageSkeleton } from '@/components/Skeleton'
 import { useSwipe } from '@/hooks/useSwipe'
@@ -28,7 +31,7 @@ import {
   getFlowForDate,
 } from '@/lib/cycle'
 import { SYMPTOM_ICONS, SYMPTOM_LABELS, FLOW_LABELS } from '@/types'
-import type { CalendarDay, SymptomType } from '@/types'
+import type { CalendarDay, SymptomType, Period } from '@/types'
 import './CalendarPage.css'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -92,8 +95,38 @@ export function CalendarPage() {
   const { periods, isLoading } = usePeriods()
   const { symptoms } = useSymptoms()
   const { records: intimacyRecords } = useIntimacy()
-  const { prediction } = useCyclePrediction(periods)
+  const { userSettings } = useAuth()
+  const { prediction } = useCyclePrediction(periods, {
+    predictionMonths: userSettings?.prediction_months ?? 3,
+    avgPeriodLength: userSettings?.average_period_length ?? 5,
+  })
   const setSelectedDate = useAppStore((s) => s.setSelectedDate)
+  const [showAllCycles, setShowAllCycles] = useState(false)
+
+  // Cycle history: past records only, newest first
+  const cycleHistory = useMemo(() => {
+    if (periods.length === 0) return []
+    const sorted = [...periods].sort(
+      (a, b) => parseISO(b.start_date).getTime() - parseISO(a.start_date).getTime()
+    )
+    return sorted.map((period, i) => {
+      const nextPeriod: Period | undefined = sorted[i + 1]
+      const cycleLength = nextPeriod
+        ? differenceInDays(parseISO(period.start_date), parseISO(nextPeriod.start_date))
+        : null
+      const periodLength = period.end_date
+        ? differenceInDays(parseISO(period.end_date), parseISO(period.start_date)) + 1
+        : null
+      return {
+        startDate: period.start_date,
+        endDate: period.end_date,
+        cycleLength,
+        periodLength,
+      }
+    })
+  }, [periods])
+
+  const visibleCycles = showAllCycles ? cycleHistory : cycleHistory.slice(0, 6)
 
   const goToPrevMonth = useCallback(() => setCurrentMonth((m) => subMonths(m, 1)), [])
   const goToNextMonth = useCallback(() => setCurrentMonth((m) => addMonths(m, 1)), [])
@@ -256,6 +289,51 @@ export function CalendarPage() {
           <button className="day-detail-edit-btn" onClick={handleGoToRecord}>
             ✏️ 이 날짜 기록하기
           </button>
+        </div>
+      )}
+
+      {/* Cycle History Table */}
+      {cycleHistory.length > 0 && (
+        <div className="cycle-history-section">
+          <h3 className="cycle-history-title">📋 주기 기록</h3>
+          <div className="cycle-history-table">
+            <div className="cycle-history-header">
+              <span className="ch-col ch-col--num">#</span>
+              <span className="ch-col ch-col--date">시작일</span>
+              <span className="ch-col ch-col--date">종료일</span>
+              <span className="ch-col ch-col--num-val">기간</span>
+              <span className="ch-col ch-col--num-val">주기</span>
+            </div>
+            {visibleCycles.map((cycle, i) => (
+              <div key={cycle.startDate} className="cycle-history-row">
+                <span className="ch-col ch-col--num">{i + 1}</span>
+                <span className="ch-col ch-col--date">
+                  {format(parseISO(cycle.startDate), 'M/d')}
+                </span>
+                <span className="ch-col ch-col--date">
+                  {cycle.endDate ? format(parseISO(cycle.endDate), 'M/d') : '-'}
+                </span>
+                <span className="ch-col ch-col--num-val">
+                  {cycle.periodLength != null ? (
+                    <span className="ch-badge ch-badge--period">{cycle.periodLength}일</span>
+                  ) : '-'}
+                </span>
+                <span className="ch-col ch-col--num-val">
+                  {cycle.cycleLength != null ? (
+                    <span className="ch-badge ch-badge--cycle">{cycle.cycleLength}일</span>
+                  ) : '-'}
+                </span>
+              </div>
+            ))}
+          </div>
+          {cycleHistory.length > 6 && (
+            <button
+              className="cycle-history-toggle"
+              onClick={() => setShowAllCycles((v) => !v)}
+            >
+              {showAllCycles ? '접기' : `전체 보기 (${cycleHistory.length}건)`}
+            </button>
+          )}
         </div>
       )}
     </div>

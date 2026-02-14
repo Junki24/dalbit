@@ -34,6 +34,7 @@ export interface UserSettings {
   display_name: string | null
   average_cycle_length: number
   average_period_length: number
+  prediction_months: number // 1~5, default 3
   notifications_enabled: boolean
   health_data_consent: boolean
   consent_date: string | null
@@ -53,6 +54,14 @@ export interface PartnerSharing {
 }
 
 // Cycle prediction
+export interface FutureCycle {
+  periodStart: Date
+  periodEnd: Date
+  ovulationDate: Date
+  fertileWindowStart: Date
+  fertileWindowEnd: Date
+}
+
 export interface CyclePrediction {
   nextPeriodDate: Date
   ovulationDate: Date
@@ -60,6 +69,7 @@ export interface CyclePrediction {
   fertileWindowEnd: Date
   confidence: 'low' | 'medium' | 'high'
   averageCycleLength: number
+  futureCycles: FutureCycle[]
 }
 
 export type CyclePhase = 'menstrual' | 'follicular' | 'ovulation' | 'luteal'

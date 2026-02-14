@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, memo } from 'react'
 import { format, isToday, differenceInDays, startOfDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useAppStore } from '@/lib/store'
+import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
@@ -80,6 +81,7 @@ const MED_TYPES: MedicationType[] = ['otc', 'prescription', 'supplement']
 export function RecordPage() {
   const { confirm, showToast } = useToast()
   const { vibrate } = useHaptic()
+  const { userSettings } = useAuth()
   const selectedDate = useAppStore((s) => s.selectedDate)
   const setSelectedDate = useAppStore((s) => s.setSelectedDate)
   const dateStr = format(selectedDate, 'yyyy-MM-dd')
@@ -91,7 +93,10 @@ export function RecordPage() {
   const { medications, addMedication, deleteMedication } = useMedications()
   const { intakes, addIntake, deleteIntake } = useMedicationIntakes(dateStr)
   const { records: intimacyRecords, addRecord: addIntimacy, deleteRecord: deleteIntimacy } = useIntimacy(dateStr)
-  const { prediction } = useCyclePrediction(periods)
+  const { prediction } = useCyclePrediction(periods, {
+    predictionMonths: userSettings?.prediction_months ?? 3,
+    avgPeriodLength: userSettings?.average_period_length ?? 5,
+  })
 
   const [showIntimacyForm, setShowIntimacyForm] = useState(false)
   const [intimacyTimeOfDay, setIntimacyTimeOfDay] = useState<TimeOfDay | null>(null)

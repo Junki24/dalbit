@@ -361,3 +361,119 @@
   color: #a855f7;
   box-shadow: 0 0 8px rgba(168, 85, 247, 0.1);
 }
+
+/* ── Cycle History Table ── */
+.cycle-history-section {
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.cycle-history-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 14px;
+}
+
+.cycle-history-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cycle-history-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 4px;
+}
+
+.cycle-history-header .ch-col {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cycle-history-row {
+  display: flex;
+  align-items: center;
+  padding: 9px 4px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s;
+}
+
+.cycle-history-row:nth-child(even) {
+  background: rgba(124, 58, 237, 0.03);
+}
+
+/* Column sizing */
+.ch-col--num {
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.ch-col--date {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.ch-col--num-val {
+  width: 54px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: var(--color-text);
+}
+
+/* Badges */
+.ch-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.ch-badge--period {
+  background: rgba(244, 63, 94, 0.12);
+  color: var(--color-period);
+}
+
+.ch-badge--cycle {
+  background: rgba(124, 58, 237, 0.12);
+  color: var(--color-primary-light);
+}
+
+/* Show more / collapse toggle */
+.cycle-history-toggle {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border);
+  background: none;
+  color: var(--color-primary-light);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cycle-history-toggle:active {
+  background: rgba(124, 58, 237, 0.08);
+}
