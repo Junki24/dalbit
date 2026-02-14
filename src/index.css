@@ -328,6 +328,12 @@
   border-color: rgba(124, 58, 237, 0.2);
   color: var(--color-primary);
 }
+[data-theme="light"] .gender-mode-toggle {
+  background: rgba(203, 213, 225, 0.4);
+}
+[data-theme="light"] .intimacy-fertile-info {
+  color: rgba(37, 99, 235, 0.9);
+}
 
 /* ── Login Page light overrides ── */
 [data-theme="light"] .login-page {

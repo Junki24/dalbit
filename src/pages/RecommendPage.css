@@ -715,6 +715,9 @@
 [data-theme="light"] .survey-text-input {
   background: rgba(241, 245, 249, 0.8);
 }
+[data-theme="light"] .survey-text-input:focus {
+  background: rgba(255, 255, 255, 0.95);
+}
 
 [data-theme="light"] .recommend-care-card {
   background: rgba(241, 245, 249, 0.6);

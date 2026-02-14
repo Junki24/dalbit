@@ -42,6 +42,7 @@ const StatsPage = lazyWithReload(() => import('@/pages/StatsPage').then(m => ({ 
 const InvitePage = lazyWithReload(() => import('@/pages/InvitePage').then(m => ({ default: m.InvitePage })))
 const PartnerPage = lazyWithReload(() => import('@/pages/PartnerPage').then(m => ({ default: m.PartnerPage })))
 const RecommendPage = lazyWithReload(() => import('@/pages/RecommendPage').then(m => ({ default: m.RecommendPage })))
+const AdminPage = lazyWithReload(() => import('@/pages/AdminPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -153,6 +154,7 @@ export default function App() {
                   <Route path="/partner" element={<PartnerPage />} />
                   <Route path="/recommend" element={<RecommendPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

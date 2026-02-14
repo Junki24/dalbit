@@ -614,14 +614,19 @@ export function SettingsPage() {
                🔔 테스트 알림 보내기
              </button>
              {user?.email === 'junki7051@gmail.com' && (
-               <button
-                 className="btn-export"
-                 onClick={handleServerPushTest}
-                 style={{ marginTop: '8px' }}
-               >
-                 🚀 서버 푸시 테스트
-               </button>
-             )}
+                <>
+                  <button
+                    className="btn-export"
+                    onClick={handleServerPushTest}
+                    style={{ marginTop: '8px' }}
+                  >
+                    🚀 서버 푸시 테스트
+                  </button>
+                  <Link to="/admin" className="btn-export" style={{ marginTop: '8px', display: 'block', textAlign: 'center', textDecoration: 'none' }}>
+                    🛡️ 관리자 대시보드
+                  </Link>
+                </>
+              )}
            </>
          )}
          <p className="settings-hint">
