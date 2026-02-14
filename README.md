@@ -7,11 +7,11 @@
 | 기능 | 설명 |
 |------|------|
 | **생리주기 기록** | 시작일/종료일, 유량 강도, 메모 자동저장 |
-| **주기 예측** | 최근 주기 데이터 기반 다음 생리일·배란일·가임기 예측 |
+| **주기 예측** | 1~5개월 다중 주기 예측 (생리일·배란일·가임기), 설정에서 커스텀 |
 | **증상 추적** | 20+ 증상 카테고리, 심각도 3단계, 상관관계 분석 |
 | **관계일 추적** | 시간대, 피임 방법, 가임기 정보 표시 (정보제공 톤) |
 | **약 복용 관리** | 약 등록, 복용 기록, 리마인더 |
-| **캘린더 뷰** | 생리·배란·가임기·관계일을 한눈에, 스와이프 월 이동 |
+| **캘린더 뷰** | 생리·배란·가임기·관계일을 한눈에, 스와이프 월 이동, 주기 기록 표 |
 | **통계 분석** | 주기 트렌드, 증상 패턴, 관계일 통계, CSV 내보내기 |
 | **파트너 공유** | 초대 코드로 파트너 연결, 기본 공유 활성화, 읽기 전용 대시보드 |
 | **PDF 리포트** | 주기·증상·관계일 요약 PDF 생성 |
@@ -41,7 +41,7 @@ dalbit/
 ├── public/                     # PWA 아이콘, manifest
 ├── e2e/                        # Playwright E2E 테스트
 ├── supabase/
-│   ├── migrations/             # 10개 SQL 마이그레이션
+│   ├── migrations/             # 11개 SQL 마이그레이션
 │   │   ├── 20260214_push_subscriptions.sql
 │   │   ├── 20260215_push_cron.sql
 │   │   ├── 20260216_fix_invite_rls.sql
@@ -51,7 +51,8 @@ dalbit/
 │   │   ├── 20260220_fix_invite_accept_rls.sql
 │   │   ├── 20260221_medications_and_tips.sql
 │   │   ├── 20260222_tips_seed_data.sql
-│   │   └── 20260223_intimacy_records.sql
+│   │   ├── 20260223_intimacy_records.sql
+│   │   └── 20260224_prediction_months.sql
 │   └── functions/              # Supabase Edge Functions
 │       ├── analyze-screenshot/ # AI 스크린샷 분석
 │       └── send-notifications/ # Push 알림 발송
@@ -118,7 +119,7 @@ dalbit/
 | `intimacy_records` | 관계일 기록 (시간대, 피임 여부/방법, 메모) |
 | `medications` | 약 등록 정보 |
 | `medication_intakes` | 약 복용 기록 |
-| `user_settings` | 사용자 설정 (주기 길이, 알림 등) |
+| `user_settings` | 사용자 설정 (주기 길이, 예측 개월 수, 알림 등) |
 | `partner_sharing` | 파트너 연결 + 공유 범위 |
 | `daily_notes` | 일일 메모 |
 | `pad_preferences` | 생리대 선호 설정 |
@@ -220,6 +221,21 @@ npm run dev
   - PDF 리포트에 관계일 요약 포함
 - 이미지 마이그레이션 auth session missing 버그 수정
   - `refreshSession()` → `getSession()` 폴백 체인
+
+### v1.7 — Edge Function 수정 + 다중 예측 + UI 개선 (2026-02-14)
+- Edge Function auth 수정
+  - `analyze-screenshot`: CORS 헤더 추가 (`apikey`, `x-client-info`), `--no-verify-jwt` 배포, `getUser(token)` 직접 전달
+  - `send-notifications`: 동일 CORS 수정 + `--no-verify-jwt`
+  - `MigrationSection`: `ensureAccessToken()` 3단계 방어 + `supabase.functions.invoke()` 전환
+- 토글 UI 개선 — ON/OFF 시각적 구분 (OFF: 회색, ON: 초록)
+- 라이트모드 전면 보정 — 40+ 컴포넌트 CSS 오버라이드
+- 다중 주기 예측 (1~5개월)
+  - `FutureCycle` 타입 + `calculateCyclePrediction()` N주기 생성 루프
+  - `isDateInPredictedPeriod/isDateInFertileWindow/isOvulationDay` 모든 미래 주기 체크
+  - 설정에서 예측 개월 수 커스텀 (기본 3, 범위 1~5)
+  - DB 마이그레이션: `prediction_months` 컬럼
+- 캘린더 주기 기록 표 — 시작일/종료일/기간/주기, 최근 6건 + 더보기
+- 202개 테스트 유지 (all pass)
 
 ## 라이선스
 
