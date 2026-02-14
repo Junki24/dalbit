@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { ToastProvider } from '@/contexts/ToastContext'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { ToastContainer, ConfirmDialog } from '@/components/Toast'
@@ -79,6 +80,7 @@ function AuthCallback() {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ToastProvider>
@@ -123,5 +125,6 @@ export default function App() {
         </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
+    </ThemeProvider>
   )
 }

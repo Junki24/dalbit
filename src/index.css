@@ -21,6 +21,39 @@
   --radius-sm: 8px;
 }
 
+/* Light Mode */
+[data-theme="light"] {
+  --color-primary: #7c3aed;
+  --color-primary-light: #6d28d9;
+  --color-primary-dark: #5b21b6;
+  --color-bg: #f8fafc;
+  --color-bg-card: rgba(255, 255, 255, 0.85);
+  --color-bg-card-solid: #ffffff;
+  --color-border: rgba(203, 213, 225, 0.6);
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+  --color-period: #e11d48;
+  --color-fertile: #2563eb;
+  --color-ovulation: #9333ea;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.08);
+  --glass-blur: blur(12px);
+}
+
+[data-theme="light"] body {
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(124, 58, 237, 0.04) 0%, transparent 60%);
+}
+
+[data-theme="light"] .form-input {
+  background: rgba(241, 245, 249, 0.8);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+}
+
 *,
 *::before,
 *::after {
