@@ -409,24 +409,51 @@
   margin-bottom: 0;
 }
 
-/* ── Share Button ── */
+/* ── Share + Feedback ── */
+.settings-bottom-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .btn-share-app {
-  width: 100%;
+  flex: 1;
   padding: 14px;
   border-radius: var(--radius-md);
   border: 1px solid rgba(124, 58, 237, 0.35);
   background: linear-gradient(135deg, rgba(124, 58, 237, 0.12) 0%, rgba(168, 85, 247, 0.08) 100%);
   color: var(--color-primary-light);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
   -webkit-tap-highlight-color: transparent;
-  letter-spacing: 0.01em;
 }
 
 .btn-share-app:active {
   background: rgba(124, 58, 237, 0.22);
+  transform: scale(0.98);
+}
+
+.btn-feedback {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: rgba(15, 23, 42, 0.3);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-feedback:active {
+  background: rgba(124, 58, 237, 0.1);
   transform: scale(0.98);
 }
 

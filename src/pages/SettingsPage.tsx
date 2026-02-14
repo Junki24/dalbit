@@ -643,10 +643,18 @@ export function SettingsPage() {
         </p>
       </div>
 
-      {/* Share */}
-      <button className="btn-share-app" onClick={handleShareApp}>
-        {shareResult === 'copied' ? '✓ 링크가 복사되었어요!' : '🔗 달빛 공유하기'}
-      </button>
+      {/* Share + Feedback */}
+      <div className="settings-bottom-actions">
+        <button className="btn-share-app" onClick={handleShareApp}>
+          {shareResult === 'copied' ? '✓ 링크가 복사되었어요!' : '🔗 달빛 공유하기'}
+        </button>
+        <a
+          className="btn-feedback"
+          href="mailto:junki7051@gmail.com?subject=[달빛] 피드백&body=안녕하세요! 달빛 사용 중 의견이 있어 연락드려요.%0A%0A"
+        >
+          💬 피드백 보내기
+        </a>
+      </div>
 
       {/* Sign Out */}
       <button className="btn-signout" onClick={signOut}>
