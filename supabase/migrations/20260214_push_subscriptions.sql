@@ -15,11 +15,18 @@ CREATE UNIQUE INDEX IF NOT EXISTS push_subscriptions_user_endpoint
 -- RLS
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can manage own push subscriptions"
-  ON push_subscriptions
-  FOR ALL
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE policyname = 'Users can manage own push subscriptions'
+  ) THEN
+    CREATE POLICY "Users can manage own push subscriptions"
+      ON push_subscriptions FOR ALL
+      USING (auth.uid() = user_id)
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
+END
+$$;
 
 -- Grant access to service role (for Edge Function)
 GRANT SELECT ON push_subscriptions TO service_role;
