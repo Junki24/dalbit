@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { useSymptomPatterns } from '@/hooks/useSymptomPatterns'
+import { useMedicationIntakes } from '@/hooks/useMedications'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
 import { generatePdfReport } from '@/lib/pdf-export'
@@ -28,7 +29,9 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
 export function StatsPage() {
   const { periods } = usePeriods()
   const { symptoms } = useSymptoms()
+  const { intakes: medicationIntakes } = useMedicationIntakes()
   const { userSettings } = useAuth()
+  const [showAllCycles, setShowAllCycles] = useState(false)
   const { prediction } = useCyclePrediction(periods)
   const avgCycleLength = prediction?.averageCycleLength ?? userSettings?.average_cycle_length ?? 28
   const symptomPatterns = useSymptomPatterns(periods, symptoms, avgCycleLength)
@@ -410,29 +413,45 @@ export function StatsPage() {
             </div>
           )}
 
-          {/* Cycle History */}
+          {/* Cycle History — Full List */}
           <div className="stats-section">
-            <h3 className="stats-section-title">📅 주기 기록</h3>
+            <div className="stats-section-header">
+              <h3 className="stats-section-title">📅 전체 생리 기록</h3>
+              <span className="stats-section-count">{cycleHistory.length}건</span>
+            </div>
             <div className="cycle-history">
-              {cycleHistory.slice(0, 12).map((cycle) => (
+              {(showAllCycles ? cycleHistory : cycleHistory.slice(0, 6)).map((cycle, i) => (
                 <div key={cycle.startDate} className="history-item">
-                  <div className="history-date">
-                    {format(parseISO(cycle.startDate), 'M/d', { locale: ko })}
-                    {cycle.endDate && (
-                      <> ~ {format(parseISO(cycle.endDate), 'M/d', { locale: ko })}</>
-                    )}
-                  </div>
-                  <div className="history-details">
-                    {cycle.periodLength && (
-                      <span className="history-tag">{cycle.periodLength}일간</span>
-                    )}
-                    {cycle.cycleLength && (
-                      <span className="history-tag history-tag--cycle">주기 {cycle.cycleLength}일</span>
-                    )}
+                  <span className="history-num">{cycleHistory.length - i}</span>
+                  <div className="history-main">
+                    <div className="history-date">
+                      {format(parseISO(cycle.startDate), 'yyyy.M.d', { locale: ko })}
+                      {cycle.endDate && (
+                        <span className="history-date-end">
+                          ~ {format(parseISO(cycle.endDate), 'M.d', { locale: ko })}
+                        </span>
+                      )}
+                    </div>
+                    <div className="history-details">
+                      {cycle.periodLength && (
+                        <span className="history-tag">{cycle.periodLength}일간</span>
+                      )}
+                      {cycle.cycleLength && (
+                        <span className="history-tag history-tag--cycle">주기 {cycle.cycleLength}일</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
+            {cycleHistory.length > 6 && (
+              <button
+                className="history-show-more"
+                onClick={() => setShowAllCycles(!showAllCycles)}
+              >
+                {showAllCycles ? '접기' : `전체 보기 (${cycleHistory.length}건)`}
+              </button>
+            )}
           </div>
 
           {/* Export Buttons */}
@@ -442,7 +461,7 @@ export function StatsPage() {
             </button>
             <button
               className="btn-csv-export"
-              onClick={() => generatePdfReport({ periods, symptoms, userSettings })}
+              onClick={() => generatePdfReport({ periods, symptoms, userSettings, medicationIntakes })}
             >
               🖨️ PDF 리포트
             </button>

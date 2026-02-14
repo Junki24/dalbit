@@ -213,23 +213,6 @@ export interface MedicationIntake {
   created_at: string
 }
 
-export interface MedicationSchedule {
-  id: string
-  user_id: string
-  medication_id: string
-  timezone: string
-  times_local: string[]      // ["09:00", "21:00"]
-  days_of_week: number[] | null
-  start_date: string
-  end_date: string | null
-  enabled: boolean
-  next_trigger_at: string
-  last_trigger_at: string | null
-  reminder_message: string | null
-  created_at: string
-  updated_at: string
-}
-
 export const MEDICATION_TYPE_LABELS: Record<MedicationType, string> = {
   otc: '일반의약품',
   prescription: '처방약',

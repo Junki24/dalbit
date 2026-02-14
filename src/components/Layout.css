@@ -50,6 +50,7 @@
   padding: 16px 20px;
   padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 

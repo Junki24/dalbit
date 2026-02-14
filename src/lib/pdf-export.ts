@@ -1,19 +1,20 @@
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { SYMPTOM_LABELS } from '@/types'
-import type { Period, Symptom, SymptomType, UserSettings } from '@/types'
+import type { Period, Symptom, SymptomType, UserSettings, MedicationIntake } from '@/types'
 
 interface ExportData {
   periods: Period[]
   symptoms: Symptom[]
   userSettings: UserSettings | null
+  medicationIntakes?: MedicationIntake[]
 }
 
 /**
  * Lazy-load @react-pdf/renderer and generate a downloadable PDF.
  * The library is ~600KB, so we dynamic-import to keep the initial bundle small.
  */
-export async function generatePdfReport({ periods, symptoms, userSettings }: ExportData) {
+export async function generatePdfReport({ periods, symptoms, userSettings, medicationIntakes = [] }: ExportData) {
   const [reactPdf, React] = await Promise.all([
     import('@react-pdf/renderer'),
     import('react'),
@@ -292,6 +293,35 @@ export async function generatePdfReport({ periods, symptoms, userSettings }: Exp
                 h(Text, { style: styles.symptomSeverity }, `${avgSev}/5`)
               )
             }),
+          ]
+        : []),
+
+      // Medication Intakes
+      ...(medicationIntakes.length > 0
+        ? [
+            h(Text, { style: styles.sectionTitle, key: 'med-title' }, '약 복용 기록'),
+            ...(() => {
+              // Group intakes by medication name + count
+              const medCounts = new Map<string, { count: number; lastDate: string; dosage: string | null }>()
+              for (const intake of medicationIntakes) {
+                const entry = medCounts.get(intake.medication_name) ?? { count: 0, lastDate: intake.taken_at, dosage: intake.dosage }
+                entry.count += 1
+                if (intake.taken_at > entry.lastDate) entry.lastDate = intake.taken_at
+                medCounts.set(intake.medication_name, entry)
+              }
+              return [...medCounts.entries()]
+                .sort((a, b) => b[1].count - a[1].count)
+                .slice(0, 10)
+                .map(([name, { count, lastDate, dosage }]) =>
+                  h(View, { key: `med-${name}`, style: styles.symptomRow },
+                    h(Text, { style: styles.symptomName }, name),
+                    h(Text, { style: styles.symptomCount }, `${count}회`),
+                    h(Text, { style: { fontSize: 8, color: '#64748b' } },
+                      `${dosage ? dosage + ' · ' : ''}최근: ${format(parseISO(lastDate), 'M.d')}`
+                    )
+                  )
+                )
+            })(),
           ]
         : []),
 

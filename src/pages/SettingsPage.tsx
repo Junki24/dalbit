@@ -6,6 +6,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { useNotifications } from '@/hooks/useNotifications'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
+import { useMedications, useMedicationIntakes } from '@/hooks/useMedications'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import './SettingsPage.css'
 
@@ -16,6 +17,8 @@ export function SettingsPage() {
   const { requestPermission, subscribeToPush, isSupported, permission } = useNotifications()
   const { periods } = usePeriods()
   const { symptoms } = useSymptoms()
+  const { medications } = useMedications()
+  const { intakes: medicationIntakes } = useMedicationIntakes()
   const [displayName, setDisplayName] = useState(userSettings?.display_name ?? '')
   const [cycleLength, setCycleLength] = useState(userSettings?.average_cycle_length ?? 28)
   const [periodLength, setPeriodLength] = useState(userSettings?.average_period_length ?? 5)
@@ -47,12 +50,25 @@ export function SettingsPage() {
       if (data) allPeriods = data
     }
 
+    // Fetch all medication intakes (not just today's)
+    let allIntakes = medicationIntakes
+    if (user && isSupabaseConfigured) {
+      const { data } = await supabase
+        .from('medication_intakes')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('taken_at', { ascending: false })
+      if (data) allIntakes = data
+    }
+
     const exportData = {
       exported_at: new Date().toISOString(),
       user_email: user?.email,
       settings: userSettings,
       periods: allPeriods,
       symptoms,
+      medications,
+      medication_intakes: allIntakes,
     }
     const blob = new Blob([JSON.stringify(exportData, null, 2)], {
       type: 'application/json',
@@ -103,7 +119,7 @@ export function SettingsPage() {
 
     const confirmed = await confirm({
       title: '⚠️ 데이터 삭제',
-      message: '정말 모든 데이터를 삭제하시겠습니까?\n\n삭제되는 항목:\n• 모든 생리 기록\n• 모든 증상 기록\n• 모든 메모\n• 파트너 공유 설정\n\n이 작업은 되돌릴 수 없습니다.',
+      message: '정말 모든 데이터를 삭제하시겠습니까?\n\n삭제되는 항목:\n• 모든 생리 기록\n• 모든 증상 기록\n• 모든 메모\n• 모든 약 복용 기록\n• 파트너 공유 설정\n\n이 작업은 되돌릴 수 없습니다.',
       confirmText: '삭제',
       cancelText: '취소',
       danger: true,
@@ -121,6 +137,8 @@ export function SettingsPage() {
 
     try {
       await Promise.all([
+        supabase.from('medication_intakes').delete().eq('user_id', user.id),
+        supabase.from('medications').delete().eq('user_id', user.id),
         supabase.from('periods').delete().eq('user_id', user.id),
         supabase.from('symptoms').delete().eq('user_id', user.id),
         supabase.from('daily_notes').delete().eq('user_id', user.id),
@@ -144,14 +162,14 @@ export function SettingsPage() {
       const data = JSON.parse(text)
 
       // Validate structure
-      if (!data.periods && !data.symptoms && !data.settings) {
+      if (!data.periods && !data.symptoms && !data.settings && !data.medications) {
         showToast('올바른 달빛 백업 파일이 아닙니다.', 'error')
         return
       }
 
       const confirmed = await confirm({
         title: '📤 데이터 복원',
-        message: `다음 데이터를 복원합니다:\n\n• 생리 기록: ${data.periods?.length ?? 0}건\n• 증상 기록: ${data.symptoms?.length ?? 0}건\n${data.settings ? '• 설정 정보 포함' : ''}\n\n기존 데이터와 병합됩니다.`,
+        message: `다음 데이터를 복원합니다:\n\n• 생리 기록: ${data.periods?.length ?? 0}건\n• 증상 기록: ${data.symptoms?.length ?? 0}건\n• 약 정보: ${data.medications?.length ?? 0}건\n• 복용 기록: ${data.medication_intakes?.length ?? 0}건\n${data.settings ? '• 설정 정보 포함' : ''}\n\n기존 데이터와 병합됩니다.`,
         confirmText: '복원',
         cancelText: '취소',
       })
@@ -190,6 +208,46 @@ export function SettingsPage() {
           .from('symptoms')
           .upsert(symptomsToImport, { onConflict: 'id' })
         if (!error) importedCount += symptomsToImport.length
+      }
+
+      // Import medications
+      if (data.medications?.length > 0) {
+        const medsToImport = data.medications.map((m: Record<string, unknown>) => ({
+          id: m.id,
+          user_id: user.id,
+          name: m.name,
+          type: m.type ?? 'otc',
+          form: m.form ?? null,
+          strength: m.strength ?? null,
+          hospital: m.hospital ?? null,
+          doctor: m.doctor ?? null,
+          prescribed_date: m.prescribed_date ?? null,
+          prescription_notes: m.prescription_notes ?? null,
+          prescription_days: m.prescription_days ?? null,
+          notes: m.notes ?? null,
+          is_active: m.is_active ?? true,
+        }))
+        const { error } = await supabase
+          .from('medications')
+          .upsert(medsToImport, { onConflict: 'id' })
+        if (!error) importedCount += medsToImport.length
+      }
+
+      // Import medication intakes
+      if (data.medication_intakes?.length > 0) {
+        const intakesToImport = data.medication_intakes.map((i: Record<string, unknown>) => ({
+          id: i.id,
+          user_id: user.id,
+          medication_id: i.medication_id ?? null,
+          medication_name: i.medication_name,
+          taken_at: i.taken_at,
+          dosage: i.dosage ?? null,
+          note: i.note ?? null,
+        }))
+        const { error } = await supabase
+          .from('medication_intakes')
+          .upsert(intakesToImport, { onConflict: 'id' })
+        if (!error) importedCount += intakesToImport.length
       }
 
       // Import settings

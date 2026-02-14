@@ -14,8 +14,9 @@ import {
   SYMPTOM_ICONS,
   FLOW_LABELS,
   MEDICATION_TYPE_ICONS,
+  MEDICATION_TYPE_LABELS,
 } from '@/types'
-import type { SymptomType, FlowIntensity } from '@/types'
+import type { SymptomType, FlowIntensity, MedicationType } from '@/types'
 import './RecordPage.css'
 
 const ALL_SYMPTOMS: SymptomType[] = [
@@ -69,8 +70,10 @@ const SymptomButton = memo(function SymptomButton({
   )
 })
 
+const MED_TYPES: MedicationType[] = ['otc', 'prescription', 'supplement']
+
 export function RecordPage() {
-  const { confirm } = useToast()
+  const { confirm, showToast } = useToast()
   const { vibrate } = useHaptic()
   const selectedDate = useAppStore((s) => s.selectedDate)
   const setSelectedDate = useAppStore((s) => s.setSelectedDate)
@@ -80,7 +83,7 @@ export function RecordPage() {
   const { periods, addPeriod, updatePeriod, deletePeriod } = usePeriods()
   const { symptoms, addSymptom, deleteSymptom, updateSymptom } = useSymptoms(dateStr)
   const { note, saveNote, isSaving: isNoteSaving } = useNotes(dateStr)
-  const { medications } = useMedications()
+  const { medications, addMedication, deleteMedication } = useMedications()
   const { intakes, addIntake, deleteIntake } = useMedicationIntakes(dateStr)
 
   const existingPeriod = isDateInPeriod(dateStr, periods)
@@ -93,7 +96,20 @@ export function RecordPage() {
   const [notesSaved, setNotesSaved] = useState(false)
   const [selectedSeveritySymptom, setSelectedSeveritySymptom] = useState<SymptomType | null>(null)
   const [medInputName, setMedInputName] = useState('')
+  const [medInputDosage, setMedInputDosage] = useState('')
   const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Medication registration form state
+  const [showMedForm, setShowMedForm] = useState(false)
+  const [newMedName, setNewMedName] = useState('')
+  const [newMedType, setNewMedType] = useState<MedicationType>('otc')
+  const [newMedStrength, setNewMedStrength] = useState('')
+  const [newMedHospital, setNewMedHospital] = useState('')
+  const [newMedDoctor, setNewMedDoctor] = useState('')
+  const [newMedNotes, setNewMedNotes] = useState('')
+
+  /** Build taken_at using selected date + current time */
+  const buildTakenAt = () => `${dateStr}T${format(new Date(), 'HH:mm:ss')}`
 
   // Reset state when date changes
   useEffect(() => {
@@ -221,6 +237,95 @@ export function RecordPage() {
     const newDate = new Date(selectedDate)
     newDate.setDate(newDate.getDate() + offset)
     setSelectedDate(newDate)
+  }
+
+  // ── Medication handlers ──
+
+  const resetMedForm = () => {
+    setNewMedName('')
+    setNewMedType('otc')
+    setNewMedStrength('')
+    setNewMedHospital('')
+    setNewMedDoctor('')
+    setNewMedNotes('')
+  }
+
+  const handleRegisterMed = async () => {
+    if (!newMedName.trim()) return
+    try {
+      await addMedication.mutateAsync({
+        name: newMedName.trim(),
+        type: newMedType,
+        strength: newMedStrength.trim() || null,
+        hospital: newMedType === 'prescription' ? (newMedHospital.trim() || null) : null,
+        doctor: newMedType === 'prescription' ? (newMedDoctor.trim() || null) : null,
+        prescription_notes: newMedType === 'prescription' ? (newMedNotes.trim() || null) : null,
+      })
+      resetMedForm()
+      setShowMedForm(false)
+      showToast('약이 등록되었습니다', 'success')
+      vibrate('success')
+    } catch {
+      showToast('약 등록에 실패했습니다', 'error')
+    }
+  }
+
+  const handleDeleteMed = async (medId: string, medName: string) => {
+    const confirmed = await confirm({
+      title: '약 삭제',
+      message: `'${medName}'을(를) 등록 목록에서 삭제하시겠습니까?\n(기존 복용 기록은 유지됩니다)`,
+      confirmText: '삭제',
+      cancelText: '취소',
+    })
+    if (!confirmed) return
+    try {
+      await deleteMedication.mutateAsync(medId)
+      showToast('삭제되었습니다', 'success')
+      vibrate('medium')
+    } catch {
+      showToast('삭제에 실패했습니다', 'error')
+    }
+  }
+
+  const handleQuickAdd = async (med: typeof medications[number]) => {
+    try {
+      await addIntake.mutateAsync({
+        medication_id: med.id,
+        medication_name: med.name,
+        dosage: med.strength ?? null,
+        taken_at: buildTakenAt(),
+      })
+      showToast(`${med.name} 복용 기록됨`, 'success')
+      vibrate('light')
+    } catch {
+      showToast('복용 기록 추가에 실패했습니다', 'error')
+    }
+  }
+
+  const handleManualIntake = async () => {
+    if (!medInputName.trim()) return
+    try {
+      await addIntake.mutateAsync({
+        medication_name: medInputName.trim(),
+        dosage: medInputDosage.trim() || null,
+        taken_at: buildTakenAt(),
+      })
+      setMedInputName('')
+      setMedInputDosage('')
+      showToast('복용 기록이 추가되었습니다', 'success')
+      vibrate('light')
+    } catch {
+      showToast('복용 기록 추가에 실패했습니다', 'error')
+    }
+  }
+
+  const handleDeleteIntake = async (intakeId: string) => {
+    try {
+      await deleteIntake.mutateAsync(intakeId)
+      vibrate('light')
+    } catch {
+      showToast('삭제에 실패했습니다', 'error')
+    }
   }
 
   return (
@@ -390,28 +495,108 @@ export function RecordPage() {
       <div className="record-section">
         <h3 className="section-title">💊 복용 기록</h3>
 
-        {/* Quick-add from registered medications */}
+        {/* ── Medication Registration Form ── */}
+        {showMedForm ? (
+          <div className="med-register-form">
+            <div className="med-register-header">
+              <span className="med-register-title">새 약 등록</span>
+              <button className="severity-close" onClick={() => { setShowMedForm(false); resetMedForm() }}>✕</button>
+            </div>
+
+            <input
+              className="med-manual-input"
+              type="text"
+              placeholder="약 이름 (필수)"
+              value={newMedName}
+              onChange={(e) => setNewMedName(e.target.value)}
+            />
+
+            <div className="med-type-selector">
+              {MED_TYPES.map((t) => (
+                <button
+                  key={t}
+                  className={`med-type-btn ${newMedType === t ? 'med-type-btn--active' : ''}`}
+                  onClick={() => setNewMedType(t)}
+                >
+                  {MEDICATION_TYPE_ICONS[t]} {MEDICATION_TYPE_LABELS[t]}
+                </button>
+              ))}
+            </div>
+
+            <input
+              className="med-manual-input"
+              type="text"
+              placeholder="용량 (예: 200mg)"
+              value={newMedStrength}
+              onChange={(e) => setNewMedStrength(e.target.value)}
+            />
+
+            {newMedType === 'prescription' && (
+              <div className="med-rx-fields">
+                <input
+                  className="med-manual-input"
+                  type="text"
+                  placeholder="병원명"
+                  value={newMedHospital}
+                  onChange={(e) => setNewMedHospital(e.target.value)}
+                />
+                <input
+                  className="med-manual-input"
+                  type="text"
+                  placeholder="담당의"
+                  value={newMedDoctor}
+                  onChange={(e) => setNewMedDoctor(e.target.value)}
+                />
+                <input
+                  className="med-manual-input"
+                  type="text"
+                  placeholder="처방 메모"
+                  value={newMedNotes}
+                  onChange={(e) => setNewMedNotes(e.target.value)}
+                />
+              </div>
+            )}
+
+            <button
+              className="med-register-submit"
+              disabled={!newMedName.trim() || addMedication.isPending}
+              onClick={handleRegisterMed}
+            >
+              {addMedication.isPending ? '등록 중...' : '등록'}
+            </button>
+          </div>
+        ) : (
+          <button
+            className="med-register-toggle"
+            onClick={() => setShowMedForm(true)}
+          >
+            + 새 약 등록
+          </button>
+        )}
+
+        {/* ── Quick-add from registered medications ── */}
         {medications.length > 0 && (
           <div className="med-quick-list">
             {medications.map((med) => (
               <button
                 key={med.id}
                 className="med-quick-btn"
-                onClick={async () => {
-                  await addIntake.mutateAsync({
-                    medication_id: med.id,
-                    medication_name: med.name,
-                  })
-                  vibrate('light')
+                disabled={addIntake.isPending}
+                onClick={() => handleQuickAdd(med)}
+                onContextMenu={(e) => {
+                  e.preventDefault()
+                  handleDeleteMed(med.id, med.name)
                 }}
+                aria-label={`${med.name} 복용 기록 (길게 눌러 삭제)`}
               >
                 {MEDICATION_TYPE_ICONS[med.type]} {med.name}
+                {med.strength && <span className="med-quick-strength">{med.strength}</span>}
               </button>
             ))}
           </div>
         )}
 
-        {/* Manual entry */}
+        {/* ── Manual entry with dosage ── */}
         <div className="med-manual-form">
           <input
             className="med-manual-input"
@@ -421,27 +606,32 @@ export function RecordPage() {
             onChange={(e) => setMedInputName(e.target.value)}
             onKeyDown={async (e) => {
               if (e.key === 'Enter' && medInputName.trim()) {
-                await addIntake.mutateAsync({ medication_name: medInputName.trim() })
-                setMedInputName('')
-                vibrate('light')
+                await handleManualIntake()
+              }
+            }}
+          />
+          <input
+            className="med-manual-dosage"
+            type="text"
+            placeholder="용량"
+            value={medInputDosage}
+            onChange={(e) => setMedInputDosage(e.target.value)}
+            onKeyDown={async (e) => {
+              if (e.key === 'Enter' && medInputName.trim()) {
+                await handleManualIntake()
               }
             }}
           />
           <button
             className="med-manual-submit"
-            disabled={!medInputName.trim()}
-            onClick={async () => {
-              if (!medInputName.trim()) return
-              await addIntake.mutateAsync({ medication_name: medInputName.trim() })
-              setMedInputName('')
-              vibrate('light')
-            }}
+            disabled={!medInputName.trim() || addIntake.isPending}
+            onClick={handleManualIntake}
           >
-            복용
+            {addIntake.isPending ? '...' : '복용'}
           </button>
         </div>
 
-        {/* Intake list */}
+        {/* ── Intake list ── */}
         {intakes.length > 0 ? (
           <div className="med-intake-list">
             {intakes.map((intake) => (
@@ -455,10 +645,9 @@ export function RecordPage() {
                 )}
                 <button
                   className="med-intake-delete"
-                  onClick={async () => {
-                    await deleteIntake.mutateAsync(intake.id)
-                    vibrate('light')
-                  }}
+                  disabled={deleteIntake.isPending}
+                  onClick={() => handleDeleteIntake(intake.id)}
+                  aria-label="복용 기록 삭제"
                 >
                   ✕
                 </button>

@@ -241,6 +241,26 @@
 }
 
 /* Cycle History */
+.stats-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+
+.stats-section-header .stats-section-title {
+  margin-bottom: 14px;
+}
+
+.stats-section-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(124, 58, 237, 0.1);
+}
+
 .cycle-history {
   display: flex;
   flex-direction: column;
@@ -250,11 +270,28 @@
 .history-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
   padding: 10px 12px;
   background: rgba(15, 23, 42, 0.5);
   border: 1px solid rgba(51, 65, 85, 0.2);
   border-radius: var(--radius-sm);
+}
+
+.history-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.history-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
 }
 
 .history-date {
@@ -263,9 +300,15 @@
   font-weight: 500;
 }
 
+.history-date-end {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
 .history-details {
   display: flex;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .history-tag {
@@ -280,6 +323,25 @@
 .history-tag--cycle {
   background: rgba(124, 58, 237, 0.12);
   color: var(--color-primary-light);
+}
+
+.history-show-more {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border);
+  background: none;
+  color: var(--color-primary-light);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.history-show-more:active {
+  background: rgba(124, 58, 237, 0.08);
 }
 
 /* Severity Ranking */

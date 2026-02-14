@@ -88,6 +88,7 @@
   border-radius: var(--radius-lg);
   padding: 18px;
   box-shadow: var(--shadow-card);
+  overflow: hidden;
 }
 
 .section-title {
@@ -474,6 +475,122 @@
 }
 
 /* ── Medication Section ── */
+
+/* Registration toggle */
+.med-register-toggle {
+  width: 100%;
+  padding: 11px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.04);
+  color: var(--color-success);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  margin-bottom: 12px;
+}
+
+.med-register-toggle:active {
+  background: rgba(34, 197, 94, 0.12);
+  transform: scale(0.98);
+}
+
+/* Registration form */
+.med-register-form {
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: slideDown 0.2s ease-out;
+  overflow: hidden;
+}
+
+.med-register-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.med-register-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-success);
+}
+
+.med-type-selector {
+  display: flex;
+  gap: 6px;
+}
+
+.med-type-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: rgba(15, 23, 42, 0.3);
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.med-type-btn:active {
+  transform: scale(0.95);
+}
+
+.med-type-btn--active {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.med-rx-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  background: rgba(124, 58, 237, 0.04);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(124, 58, 237, 0.15);
+}
+
+.med-register-submit {
+  padding: 11px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-success);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.med-register-submit:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.med-register-submit:not(:disabled):active {
+  transform: scale(0.95);
+  opacity: 0.85;
+}
+
+/* Quick-add pills */
 .med-quick-list {
   display: flex;
   gap: 6px;
@@ -489,6 +606,9 @@
 }
 
 .med-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   padding: 8px 14px;
   border-radius: 20px;
   border: 1px solid rgba(34, 197, 94, 0.3);
@@ -502,19 +622,34 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.med-quick-btn:active {
+.med-quick-btn:active:not(:disabled) {
   transform: scale(0.95);
   background: rgba(34, 197, 94, 0.18);
 }
 
+.med-quick-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.med-quick-strength {
+  font-size: 0.65rem;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* Manual entry form */
 .med-manual-form {
   display: flex;
   gap: 6px;
   margin-bottom: 14px;
+  overflow: hidden;
 }
 
 .med-manual-input {
   flex: 1;
+  min-width: 0;
+  width: 100%;
   padding: 10px 14px;
   background: rgba(15, 23, 42, 0.5);
   border: 1px solid var(--color-border);
@@ -535,17 +670,42 @@
   color: var(--color-text-muted);
 }
 
+.med-manual-dosage {
+  width: 72px;
+  flex-shrink: 0;
+  padding: 10px 8px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.med-manual-dosage:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.med-manual-dosage::placeholder {
+  color: var(--color-text-muted);
+}
+
 .med-manual-submit {
-  padding: 10px 18px;
+  padding: 10px 14px;
   border-radius: var(--radius-md);
   border: none;
   background: var(--color-primary);
   color: #fff;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s, transform 0.15s;
   -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .med-manual-submit:disabled {
