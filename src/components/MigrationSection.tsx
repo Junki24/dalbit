@@ -52,10 +52,17 @@ export function MigrationSection() {
         // Convert to base64
         const base64 = await fileToBase64(file)
 
-        // Refresh session to ensure valid access token (getSession returns cached/expired tokens)
-        const { data: { session } } = await supabase.auth.refreshSession()
+        // Get valid access token: try refresh first, fallback to cached session
+        let session = null
+        const { data: refreshed } = await supabase.auth.refreshSession()
+        session = refreshed.session
         if (!session) {
-          showToast('로그인이 만료되었습니다. 다시 로그인해주세요.', 'error')
+          // Refresh failed (e.g. "Auth session missing") — use cached session
+          const { data: cached } = await supabase.auth.getSession()
+          session = cached.session
+        }
+        if (!session) {
+          showToast('로그인이 필요합니다. 다시 로그인해주세요.', 'error')
           setAnalyzing(false)
           return
         }
