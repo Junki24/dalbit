@@ -40,6 +40,7 @@ export default defineConfig({
       workbox: {
         importScripts: ['/push-handler.js'],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globIgnores: ['**/react-pdf*.js', '**/pdf-*.js'],
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
@@ -77,15 +78,6 @@ export default defineConfig({
       },
     }),
   ],
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'pdf-vendor': ['@react-pdf/renderer'],
-        },
-      },
-    },
-  },
   resolve: {
     alias: {
       '@': '/src',
