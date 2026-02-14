@@ -296,27 +296,14 @@ export function SettingsPage() {
 
   const handleServerPushTest = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        showToast('로그인 세션이 필요합니다.', 'error')
-        return
-      }
+      const { data, error } = await supabase.functions.invoke('send-notifications', {
+        method: 'POST',
+      })
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-notifications`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-        }
-      )
-      const result = await response.json()
-      if (response.ok) {
-        showToast(`서버 푸시 결과: ${result.sent ?? 0}건 발송`, 'success')
+      if (error) {
+        showToast(`서버 푸시 실패: ${error.message ?? '알 수 없는 오류'}`, 'error')
       } else {
-        showToast(`서버 푸시 실패: ${result.error ?? '알 수 없는 오류'}`, 'error')
+        showToast(`서버 푸시 결과: ${data?.sent ?? 0}건 발송`, 'success')
       }
     } catch {
       showToast('서버 푸시 테스트 실패', 'error')

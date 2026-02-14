@@ -19,6 +19,52 @@ interface AnalysisResult {
   notes: string | null
 }
 
+/**
+ * 유효한 access token을 확보하는 헬퍼.
+ * 모바일 브라우저에서 파일 피커 후 인메모리 세션이 소실되는 문제 대응.
+ * 
+ * 1) getSession() — localStorage에서 캐시된 세션 확인
+ * 2) 만료 임박(5분 이내) 또는 실패 시 → refreshSession()
+ * 3) 둘 다 실패 → getUser()로 서버 검증 (세션 복구 트리거)
+ * 4) 모두 실패 → null 반환 (재로그인 필요)
+ */
+async function ensureAccessToken(): Promise<string | null> {
+  // Step 1: 캐시된 세션 확인
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.access_token) {
+      const expiresAt = session.expires_at ?? 0
+      const now = Math.floor(Date.now() / 1000)
+      // 5분 이상 남았으면 그대로 사용
+      if (expiresAt - now > 300) {
+        return session.access_token
+      }
+    }
+  } catch { /* continue to refresh */ }
+
+  // Step 2: 세션 갱신 시도
+  try {
+    const { data: { session } } = await supabase.auth.refreshSession()
+    if (session?.access_token) {
+      return session.access_token
+    }
+  } catch { /* continue to getUser */ }
+
+  // Step 3: 서버 검증으로 세션 복구 시도
+  try {
+    const { error } = await supabase.auth.getUser()
+    if (!error) {
+      // getUser 성공 → 세션이 복구됐을 수 있음
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        return session.access_token
+      }
+    }
+  } catch { /* all failed */ }
+
+  return null
+}
+
 export function MigrationSection() {
   const { user } = useAuth()
   const { showToast, confirm } = useToast()
@@ -52,37 +98,22 @@ export function MigrationSection() {
         // Convert to base64
         const base64 = await fileToBase64(file)
 
-        // Get valid access token: try refresh first, fallback to cached session
-        let session = null
-        const { data: refreshed } = await supabase.auth.refreshSession()
-        session = refreshed.session
-        if (!session) {
-          // Refresh failed (e.g. "Auth session missing") — use cached session
-          const { data: cached } = await supabase.auth.getSession()
-          session = cached.session
-        }
-        if (!session) {
+        // Ensure valid session before calling Edge Function
+        // (mobile browsers can lose in-memory session after file picker)
+        const token = await ensureAccessToken()
+        if (!token) {
           showToast('로그인이 필요합니다. 다시 로그인해주세요.', 'error')
           setAnalyzing(false)
           return
         }
 
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-screenshot`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({ image: base64, mimeType: file.type }),
-          }
-        )
+        const { data, error: fnError } = await supabase.functions.invoke('analyze-screenshot', {
+          headers: { Authorization: `Bearer ${token}` },
+          body: { image: base64, mimeType: file.type },
+        })
 
-        const data = await response.json()
-
-        if (!response.ok) {
-          showToast(data.error || `이미지 ${i + 1} 분석 실패`, 'error')
+        if (fnError) {
+          showToast(fnError.message || `이미지 ${i + 1} 분석 실패`, 'error')
           continue
         }
 

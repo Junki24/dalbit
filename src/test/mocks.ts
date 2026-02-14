@@ -5,11 +5,15 @@ import type { UserSettings } from '@/types'
 export const mockSupabase = {
   auth: {
     getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+    refreshSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
     onAuthStateChange: vi.fn().mockReturnValue({
       data: { subscription: { unsubscribe: vi.fn() } },
     }),
     signInWithOAuth: vi.fn().mockResolvedValue({ data: null, error: null }),
     signOut: vi.fn().mockResolvedValue({ error: null }),
+  },
+  functions: {
+    invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
   },
   from: vi.fn().mockReturnValue({
     select: vi.fn().mockReturnThis(),
