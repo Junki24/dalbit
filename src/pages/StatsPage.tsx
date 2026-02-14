@@ -106,6 +106,98 @@ export function StatsPage() {
       }))
   }, [symptoms])
 
+  // Symptom correlation: which symptoms frequently appear together
+  const symptomCorrelations = useMemo(() => {
+    // Group symptoms by date
+    const byDate = new Map<string, SymptomType[]>()
+    for (const s of symptoms) {
+      const types = byDate.get(s.date) ?? []
+      types.push(s.symptom_type as SymptomType)
+      byDate.set(s.date, types)
+    }
+
+    // Count co-occurrences
+    const pairs = new Map<string, number>()
+    for (const types of byDate.values()) {
+      if (types.length < 2) continue
+      const unique = [...new Set(types)].sort()
+      for (let i = 0; i < unique.length; i++) {
+        for (let j = i + 1; j < unique.length; j++) {
+          const key = `${unique[i]}|${unique[j]}`
+          pairs.set(key, (pairs.get(key) ?? 0) + 1)
+        }
+      }
+    }
+
+    return [...pairs.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([key, count]) => {
+        const [a, b] = key.split('|') as [SymptomType, SymptomType]
+        return { a, b, count }
+      })
+  }, [symptoms])
+
+  // Symptom severity average by type
+  const severityByType = useMemo(() => {
+    const map = new Map<SymptomType, { total: number; count: number }>()
+    for (const s of symptoms) {
+      const type = s.symptom_type as SymptomType
+      const entry = map.get(type) ?? { total: 0, count: 0 }
+      entry.total += s.severity
+      entry.count += 1
+      map.set(type, entry)
+    }
+
+    return [...map.entries()]
+      .map(([type, { total, count }]) => ({
+        type,
+        avgSeverity: Math.round((total / count) * 10) / 10,
+        count,
+      }))
+      .sort((a, b) => b.avgSeverity - a.avgSeverity)
+      .slice(0, 5)
+  }, [symptoms])
+
+  // CSV export helper
+  const handleExportCsv = () => {
+    const rows: string[] = []
+
+    // Periods CSV
+    rows.push('=== 생리 기록 ===')
+    rows.push('시작일,종료일,주기길이,생리기간')
+    for (const c of cycleHistory) {
+      rows.push([
+        c.startDate,
+        c.endDate ?? '',
+        c.cycleLength?.toString() ?? '',
+        c.periodLength?.toString() ?? '',
+      ].join(','))
+    }
+
+    rows.push('')
+    rows.push('=== 증상 기록 ===')
+    rows.push('날짜,증상,심각도,메모')
+    for (const s of symptoms) {
+      const label = SYMPTOM_LABELS[s.symptom_type as SymptomType] ?? s.symptom_type
+      rows.push([
+        s.date,
+        label,
+        s.severity.toString(),
+        (s.notes ?? '').replace(/,/g, ' '),
+      ].join(','))
+    }
+
+    const bom = '\uFEFF' // UTF-8 BOM for Excel compatibility
+    const blob = new Blob([bom + rows.join('\n')], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `dalbit-stats-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const hasData = periods.length > 0
 
   return (
@@ -229,6 +321,55 @@ export function StatsPage() {
             </div>
           )}
 
+          {/* Symptom Severity */}
+          {severityByType.length > 0 && (
+            <div className="stats-section">
+              <h3 className="stats-section-title">🌡️ 증상 심각도 순위</h3>
+              <p className="stats-note" style={{ marginTop: 0, marginBottom: 12 }}>
+                평균 심각도가 높은 증상 (1~5 기준)
+              </p>
+              <div className="severity-ranking">
+                {severityByType.map((s) => (
+                  <div key={s.type} className="severity-item">
+                    <span className="severity-icon">{SYMPTOM_ICONS[s.type]}</span>
+                    <span className="severity-name">{SYMPTOM_LABELS[s.type]}</span>
+                    <div className="severity-bar-bg">
+                      <div
+                        className="severity-bar-fill"
+                        style={{ width: `${(s.avgSeverity / 5) * 100}%` }}
+                      />
+                    </div>
+                    <span className="severity-value">{s.avgSeverity}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Symptom Correlations */}
+          {symptomCorrelations.length > 0 && (
+            <div className="stats-section">
+              <h3 className="stats-section-title">🔗 함께 나타나는 증상</h3>
+              <p className="stats-note" style={{ marginTop: 0, marginBottom: 12 }}>
+                같은 날 자주 함께 기록된 증상 조합
+              </p>
+              <div className="correlation-list">
+                {symptomCorrelations.map((c) => (
+                  <div key={`${c.a}-${c.b}`} className="correlation-item">
+                    <span className="correlation-pair">
+                      <span>{SYMPTOM_ICONS[c.a]}</span>
+                      <span className="correlation-name">{SYMPTOM_LABELS[c.a]}</span>
+                      <span className="correlation-separator">+</span>
+                      <span>{SYMPTOM_ICONS[c.b]}</span>
+                      <span className="correlation-name">{SYMPTOM_LABELS[c.b]}</span>
+                    </span>
+                    <span className="correlation-count">{c.count}회</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Cycle History */}
           <div className="stats-section">
             <h3 className="stats-section-title">📅 주기 기록</h3>
@@ -253,6 +394,11 @@ export function StatsPage() {
               ))}
             </div>
           </div>
+
+          {/* CSV Export */}
+          <button className="btn-csv-export" onClick={handleExportCsv}>
+            📊 통계 CSV 내보내기
+          </button>
         </>
       )}
     </div>
