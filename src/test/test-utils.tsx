@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ToastProvider } from '@/contexts/ToastContext'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 import type { ReactNode } from 'react'
 
 function createTestQueryClient() {
@@ -38,6 +39,7 @@ function createWrapper(options: TestWrapperOptions = {}) {
 
     if (withAuth) {
       return (
+        <ThemeProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <ToastProvider>
@@ -47,6 +49,7 @@ function createWrapper(options: TestWrapperOptions = {}) {
             </ToastProvider>
           </AuthProvider>
         </QueryClientProvider>
+        </ThemeProvider>
       )
     }
 
