@@ -151,7 +151,7 @@ export default function App() {
                   <Route path="/record" element={<FemaleOnlyRoute><RecordPage /></FemaleOnlyRoute>} />
                   <Route path="/stats" element={<FemaleOnlyRoute><StatsPage /></FemaleOnlyRoute>} />
                   <Route path="/partner" element={<PartnerPage />} />
-                  <Route path="/recommend" element={<FemaleOnlyRoute><RecommendPage /></FemaleOnlyRoute>} />
+                  <Route path="/recommend" element={<RecommendPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
