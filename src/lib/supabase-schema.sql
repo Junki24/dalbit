@@ -62,6 +62,22 @@ CREATE INDEX idx_partner_sharing_owner ON partner_sharing(owner_id);
 CREATE INDEX idx_partner_sharing_partner ON partner_sharing(partner_user_id);
 CREATE INDEX idx_partner_sharing_code ON partner_sharing(invite_code);
 
+-- 5. Daily Notes (일일 메모)
+CREATE TABLE IF NOT EXISTS daily_notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  date DATE NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, date)
+);
+
+CREATE INDEX idx_daily_notes_user_date ON daily_notes(user_id, date);
+
+-- periods 테이블에 deleted_at 컬럼 추가 (soft delete)
+ALTER TABLE periods ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
 -- ============================================
 -- Row Level Security (RLS) Policies
 -- ============================================
@@ -136,6 +152,21 @@ CREATE POLICY "sharing_update" ON partner_sharing
 
 CREATE POLICY "sharing_delete" ON partner_sharing
   FOR DELETE USING (auth.uid() = owner_id);
+
+-- Daily Notes: 본인만 접근
+ALTER TABLE daily_notes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "notes_select_own" ON daily_notes
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "notes_insert_own" ON daily_notes
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "notes_update_own" ON daily_notes
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "notes_delete_own" ON daily_notes
+  FOR DELETE USING (auth.uid() = user_id);
 
 -- ============================================
 -- 완료! Supabase Auth에서 Google OAuth를 활성화하세요.

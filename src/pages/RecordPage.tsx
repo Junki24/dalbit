@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useAppStore } from '@/lib/store'
+import { useToast } from '@/contexts/ToastContext'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
+import { useNotes } from '@/hooks/useNotes'
+import { useHaptic } from '@/hooks/useHaptic'
 import { isDateInPeriod } from '@/lib/cycle'
 import {
   SYMPTOM_LABELS,
@@ -22,48 +25,102 @@ const ALL_SYMPTOMS: SymptomType[] = [
 
 const FLOW_OPTIONS: FlowIntensity[] = ['spotting', 'light', 'medium', 'heavy']
 
+const SEVERITY_LABELS = ['', '약함', '경미', '보통', '강함', '심함'] as const
+
 export function RecordPage() {
+  const { confirm } = useToast()
+  const { vibrate } = useHaptic()
   const selectedDate = useAppStore((s) => s.selectedDate)
   const setSelectedDate = useAppStore((s) => s.setSelectedDate)
   const dateStr = format(selectedDate, 'yyyy-MM-dd')
   const displayDate = format(selectedDate, 'M월 d일 (EEEE)', { locale: ko })
 
   const { periods, addPeriod, updatePeriod, deletePeriod } = usePeriods()
-  const { symptoms, addSymptom, deleteSymptom } = useSymptoms(dateStr)
+  const { symptoms, addSymptom, deleteSymptom, updateSymptom } = useSymptoms(dateStr)
+  const { note, saveNote, isSaving: isNoteSaving } = useNotes(dateStr)
 
   const existingPeriod = isDateInPeriod(dateStr, periods)
   const [isPeriodActive, setIsPeriodActive] = useState(Boolean(existingPeriod))
   const [flowIntensity, setFlowIntensity] = useState<FlowIntensity | null>(
     existingPeriod?.flow_intensity ?? null
   )
-  const [notes, setNotes] = useState('')
+  const [isEndDateMode, setIsEndDateMode] = useState(false)
+  const [notes, setNotes] = useState(note ?? '')
+  const [notesSaved, setNotesSaved] = useState(false)
+  const [selectedSeveritySymptom, setSelectedSeveritySymptom] = useState<SymptomType | null>(null)
+  const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Reset state when date changes
   useEffect(() => {
     const period = isDateInPeriod(dateStr, periods)
     setIsPeriodActive(Boolean(period))
     setFlowIntensity(period?.flow_intensity ?? null)
-    setNotes('')
+    setIsEndDateMode(false)
+    setSelectedSeveritySymptom(null)
   }, [dateStr, periods])
+
+  // Sync note from DB when date changes
+  useEffect(() => {
+    setNotes(note ?? '')
+  }, [note])
+
+  // Auto-save notes with debounce
+  const handleNotesChange = useCallback((value: string) => {
+    setNotes(value)
+    setNotesSaved(false)
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current)
+    notesTimerRef.current = setTimeout(async () => {
+      await saveNote(value)
+      setNotesSaved(true)
+      setTimeout(() => setNotesSaved(false), 2000)
+    }, 1000)
+  }, [saveNote])
+
+  // Cleanup timer
+  useEffect(() => {
+    return () => {
+      if (notesTimerRef.current) clearTimeout(notesTimerRef.current)
+    }
+  }, [])
 
   const handlePeriodToggle = async () => {
     if (isPeriodActive && existingPeriod) {
-      // 삭제 전 확인 다이얼로그 — 기존 데이터 보호
-      const confirmed = window.confirm(
-        '이 날짜의 생리 기록을 삭제하시겠습니까?\n(데이터는 안전하게 보관되며 복구할 수 있습니다)'
-      )
+      const confirmed = await confirm({
+        title: '기록 삭제',
+        message: '이 날짜의 생리 기록을 삭제하시겠습니까?\n(데이터는 안전하게 보관되며 복구할 수 있습니다)',
+        confirmText: '삭제',
+        cancelText: '취소',
+      })
       if (!confirmed) return
       await deletePeriod.mutateAsync(existingPeriod.id)
       setIsPeriodActive(false)
       setFlowIntensity(null)
+      vibrate('medium')
     } else {
-      // Add period
       await addPeriod.mutateAsync({
         start_date: dateStr,
         flow_intensity: flowIntensity,
       })
       setIsPeriodActive(true)
+      vibrate('success')
     }
+  }
+
+  const handleEndPeriod = async () => {
+    if (!existingPeriod) return
+    await updatePeriod.mutateAsync({
+      id: existingPeriod.id,
+      end_date: dateStr,
+    })
+    setIsEndDateMode(false)
+  }
+
+  const handleClearEndDate = async () => {
+    if (!existingPeriod) return
+    await updatePeriod.mutateAsync({
+      id: existingPeriod.id,
+      end_date: null,
+    })
   }
 
   const handleFlowChange = async (flow: FlowIntensity) => {
@@ -80,6 +137,7 @@ export function RecordPage() {
     const existing = symptoms.find((s) => s.symptom_type === symptomType)
     if (existing) {
       await deleteSymptom.mutateAsync(existing.id)
+      if (selectedSeveritySymptom === symptomType) setSelectedSeveritySymptom(null)
     } else {
       await addSymptom.mutateAsync({
         date: dateStr,
@@ -87,9 +145,22 @@ export function RecordPage() {
         severity: 3,
       })
     }
+    vibrate('light')
+  }
+
+  const handleSeverityChange = async (symptomType: SymptomType, severity: 1 | 2 | 3 | 4 | 5) => {
+    const existing = symptoms.find((s) => s.symptom_type === symptomType)
+    if (existing) {
+      await updateSymptom.mutateAsync({ id: existing.id, severity })
+    }
   }
 
   const activeSymptomTypes = new Set(symptoms.map((s) => s.symptom_type))
+
+  const getSymptomSeverity = (type: SymptomType): number => {
+    const s = symptoms.find((s) => s.symptom_type === type)
+    return s?.severity ?? 3
+  }
 
   // Date navigation
   const goToDate = (offset: number) => {
@@ -142,6 +213,39 @@ export function RecordPage() {
             </div>
           </div>
         )}
+
+        {/* End Date */}
+        {isPeriodActive && existingPeriod && (
+          <div className="end-date-section">
+            {existingPeriod.end_date ? (
+              <div className="end-date-info">
+                <span className="end-date-label">종료일: {existingPeriod.end_date}</span>
+                <button className="end-date-clear-btn" onClick={handleClearEndDate}>
+                  취소
+                </button>
+              </div>
+            ) : isEndDateMode ? (
+              <div className="end-date-confirm">
+                <span className="end-date-label">오늘({dateStr})을 종료일로 설정?</span>
+                <div className="end-date-actions">
+                  <button className="end-date-yes-btn" onClick={handleEndPeriod}>
+                    확인
+                  </button>
+                  <button className="end-date-no-btn" onClick={() => setIsEndDateMode(false)}>
+                    취소
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                className="end-date-btn"
+                onClick={() => setIsEndDateMode(true)}
+              >
+                🏁 생리 종료 기록
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Symptoms */}
@@ -151,44 +255,106 @@ export function RecordPage() {
         <div className="symptom-category">
           <h4 className="symptom-category-title">신체 증상</h4>
           <div className="symptom-grid">
-            {ALL_SYMPTOMS.filter((s) => !s.startsWith('mood_')).map((type) => (
-              <button
-                key={type}
-                className={`symptom-btn ${activeSymptomTypes.has(type) ? 'symptom-btn--active' : ''}`}
-                onClick={() => handleSymptomToggle(type)}
-              >
-                <span className="symptom-btn-icon">{SYMPTOM_ICONS[type]}</span>
-                <span className="symptom-btn-label">{SYMPTOM_LABELS[type]}</span>
-              </button>
-            ))}
+            {ALL_SYMPTOMS.filter((s) => !s.startsWith('mood_')).map((type) => {
+              const isActive = activeSymptomTypes.has(type)
+              return (
+                <button
+                  key={type}
+                  className={`symptom-btn ${isActive ? 'symptom-btn--active' : ''}`}
+                  onClick={() => handleSymptomToggle(type)}
+                  onContextMenu={(e) => {
+                    e.preventDefault()
+                    if (isActive) setSelectedSeveritySymptom(selectedSeveritySymptom === type ? null : type)
+                  }}
+                >
+                  <span className="symptom-btn-icon">{SYMPTOM_ICONS[type]}</span>
+                  <span className="symptom-btn-label">{SYMPTOM_LABELS[type]}</span>
+                  {isActive && (
+                    <span
+                      className="symptom-severity-badge"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedSeveritySymptom(selectedSeveritySymptom === type ? null : type)
+                      }}
+                    >
+                      {getSymptomSeverity(type)}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
         </div>
 
         <div className="symptom-category">
           <h4 className="symptom-category-title">기분</h4>
           <div className="symptom-grid">
-            {ALL_SYMPTOMS.filter((s) => s.startsWith('mood_')).map((type) => (
-              <button
-                key={type}
-                className={`symptom-btn ${activeSymptomTypes.has(type) ? 'symptom-btn--active' : ''}`}
-                onClick={() => handleSymptomToggle(type)}
-              >
-                <span className="symptom-btn-icon">{SYMPTOM_ICONS[type]}</span>
-                <span className="symptom-btn-label">{SYMPTOM_LABELS[type]}</span>
-              </button>
-            ))}
+            {ALL_SYMPTOMS.filter((s) => s.startsWith('mood_')).map((type) => {
+              const isActive = activeSymptomTypes.has(type)
+              return (
+                <button
+                  key={type}
+                  className={`symptom-btn ${isActive ? 'symptom-btn--active' : ''}`}
+                  onClick={() => handleSymptomToggle(type)}
+                  onContextMenu={(e) => {
+                    e.preventDefault()
+                    if (isActive) setSelectedSeveritySymptom(selectedSeveritySymptom === type ? null : type)
+                  }}
+                >
+                  <span className="symptom-btn-icon">{SYMPTOM_ICONS[type]}</span>
+                  <span className="symptom-btn-label">{SYMPTOM_LABELS[type]}</span>
+                  {isActive && (
+                    <span
+                      className="symptom-severity-badge"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedSeveritySymptom(selectedSeveritySymptom === type ? null : type)
+                      }}
+                    >
+                      {getSymptomSeverity(type)}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
         </div>
+
+        {/* Severity Slider */}
+        {selectedSeveritySymptom && activeSymptomTypes.has(selectedSeveritySymptom) && (
+          <div className="severity-panel">
+            <div className="severity-header">
+              <span>{SYMPTOM_ICONS[selectedSeveritySymptom]} {SYMPTOM_LABELS[selectedSeveritySymptom]}</span>
+              <button className="severity-close" onClick={() => setSelectedSeveritySymptom(null)}>✕</button>
+            </div>
+            <div className="severity-slider-row">
+              {([1, 2, 3, 4, 5] as const).map((level) => (
+                <button
+                  key={level}
+                  className={`severity-dot ${getSymptomSeverity(selectedSeveritySymptom) === level ? 'severity-dot--active' : ''}`}
+                  onClick={() => handleSeverityChange(selectedSeveritySymptom, level)}
+                >
+                  <span className="severity-dot-num">{level}</span>
+                  <span className="severity-dot-label">{SEVERITY_LABELS[level]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Notes */}
       <div className="record-section">
-        <h3 className="section-title">💬 메모</h3>
+        <h3 className="section-title">
+          💬 메모
+          {isNoteSaving && <span className="note-status note-status--saving"> 저장 중...</span>}
+          {notesSaved && <span className="note-status note-status--saved"> ✓ 저장됨</span>}
+        </h3>
         <textarea
           className="notes-input"
-          placeholder="오늘의 메모를 남겨보세요..."
+          placeholder="오늘의 메모를 남겨보세요... (자동 저장)"
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={(e) => handleNotesChange(e.target.value)}
           rows={3}
         />
       </div>

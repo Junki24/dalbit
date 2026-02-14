@@ -45,7 +45,7 @@ describe('RecordPage', () => {
 
   it('메모 텍스트 영역 존재', () => {
     renderWithProviders(<RecordPage />, { withAuth: true })
-    expect(screen.getByPlaceholderText('오늘의 메모를 남겨보세요...')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('오늘의 메모를 남겨보세요... (자동 저장)')).toBeInTheDocument()
   })
 
   it('이전/다음 날짜 네비 버튼 존재', () => {

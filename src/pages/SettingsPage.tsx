@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/contexts/ToastContext'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
@@ -8,6 +9,7 @@ import './SettingsPage.css'
 
 export function SettingsPage() {
   const { user, userSettings, signOut, updateUserSettings } = useAuth()
+  const { showToast, confirm } = useToast()
   const { periods } = usePeriods()
   const { symptoms } = useSymptoms()
   const [displayName, setDisplayName] = useState(userSettings?.display_name ?? '')
@@ -16,6 +18,8 @@ export function SettingsPage() {
   const [inviteCode, setInviteCode] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [showCopied, setShowCopied] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleSaveSettings = async () => {
     setSaving(true)
@@ -73,6 +77,119 @@ export function SettingsPage() {
 
     if (!error) {
       setInviteCode(code)
+    }
+  }
+
+  const handleDeleteAllData = async () => {
+    if (!user || !isSupabaseConfigured) return
+
+    const confirmed = await confirm({
+      title: '⚠️ 데이터 삭제',
+      message: '정말 모든 데이터를 삭제하시겠습니까?\n\n삭제되는 항목:\n• 모든 생리 기록\n• 모든 증상 기록\n• 모든 메모\n• 파트너 공유 설정\n\n이 작업은 되돌릴 수 없습니다.',
+      confirmText: '삭제',
+      cancelText: '취소',
+      danger: true,
+    })
+    if (!confirmed) return
+
+    const doubleConfirm = await confirm({
+      title: '마지막 확인',
+      message: '정말 삭제하시겠습니까?\n데이터를 먼저 내보내기(백업)하시는 것을 추천합니다.',
+      confirmText: '삭제 진행',
+      cancelText: '돌아가기',
+      danger: true,
+    })
+    if (!doubleConfirm) return
+
+    try {
+      await Promise.all([
+        supabase.from('periods').delete().eq('user_id', user.id),
+        supabase.from('symptoms').delete().eq('user_id', user.id),
+        supabase.from('daily_notes').delete().eq('user_id', user.id),
+        supabase.from('partner_sharing').delete().eq('owner_id', user.id),
+      ])
+      showToast('모든 데이터가 삭제되었습니다.', 'success')
+      setTimeout(() => window.location.reload(), 1500)
+    } catch (err) {
+      console.error('데이터 삭제 오류:', err)
+      showToast('삭제 중 오류가 발생했습니다.', 'error')
+    }
+  }
+
+  const handleImportData = async () => {
+    const file = fileInputRef.current?.files?.[0]
+    if (!file || !user || !isSupabaseConfigured) return
+
+    setImporting(true)
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+
+      // Validate structure
+      if (!data.periods && !data.symptoms && !data.settings) {
+        showToast('올바른 달빛 백업 파일이 아닙니다.', 'error')
+        return
+      }
+
+      const confirmed = await confirm({
+        title: '📤 데이터 복원',
+        message: `다음 데이터를 복원합니다:\n\n• 생리 기록: ${data.periods?.length ?? 0}건\n• 증상 기록: ${data.symptoms?.length ?? 0}건\n${data.settings ? '• 설정 정보 포함' : ''}\n\n기존 데이터와 병합됩니다.`,
+        confirmText: '복원',
+        cancelText: '취소',
+      })
+      if (!confirmed) return
+
+      let importedCount = 0
+
+      // Import periods
+      if (data.periods?.length > 0) {
+        const periodsToImport = data.periods.map((p: Record<string, unknown>) => ({
+          id: p.id,
+          user_id: user.id,
+          start_date: p.start_date,
+          end_date: p.end_date ?? null,
+          flow_intensity: p.flow_intensity ?? null,
+          deleted_at: p.deleted_at ?? null,
+        }))
+        const { error } = await supabase
+          .from('periods')
+          .upsert(periodsToImport, { onConflict: 'id' })
+        if (!error) importedCount += periodsToImport.length
+      }
+
+      // Import symptoms
+      if (data.symptoms?.length > 0) {
+        const symptomsToImport = data.symptoms.map((s: Record<string, unknown>) => ({
+          id: s.id,
+          user_id: user.id,
+          date: s.date,
+          symptom_type: s.symptom_type,
+          severity: s.severity ?? 3,
+          notes: s.notes ?? null,
+        }))
+        const { error } = await supabase
+          .from('symptoms')
+          .upsert(symptomsToImport, { onConflict: 'id' })
+        if (!error) importedCount += symptomsToImport.length
+      }
+
+      // Import settings
+      if (data.settings) {
+        await updateUserSettings({
+          display_name: data.settings.display_name ?? null,
+          average_cycle_length: data.settings.average_cycle_length ?? 28,
+          average_period_length: data.settings.average_period_length ?? 5,
+        })
+      }
+
+      showToast(`${importedCount}건의 데이터를 복원했습니다.`, 'success')
+      setTimeout(() => window.location.reload(), 1500)
+    } catch (err) {
+      console.error('데이터 복원 오류:', err)
+      showToast('파일을 읽는 중 오류가 발생했습니다. JSON 형식을 확인해주세요.', 'error')
+    } finally {
+      setImporting(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -165,6 +282,25 @@ export function SettingsPage() {
         <p className="settings-hint">
           기록된 모든 생리주기, 증상, 설정 데이터를 JSON 파일로 내보냅니다.
         </p>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          onChange={handleImportData}
+          style={{ display: 'none' }}
+          aria-label="데이터 복원 파일 선택"
+        />
+        <button
+          className="btn-import"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={importing}
+        >
+          {importing ? '복원 중...' : '📤 데이터 복원 (JSON)'}
+        </button>
+        <p className="settings-hint">
+          이전에 내보낸 JSON 백업 파일에서 데이터를 복원합니다.
+        </p>
       </div>
 
       {/* Privacy */}
@@ -179,6 +315,17 @@ export function SettingsPage() {
             건강정보 수집 동의일: {new Date(userSettings.consent_date).toLocaleDateString('ko-KR')}
           </p>
         )}
+      </div>
+
+      {/* Danger Zone */}
+      <div className="settings-section settings-section--danger">
+        <h3 className="settings-section-title">⚠️ 위험 구역</h3>
+        <p className="settings-desc">
+          모든 데이터를 삭제합니다. 이 작업은 되돌릴 수 없습니다.
+        </p>
+        <button className="btn-delete-all" onClick={handleDeleteAllData}>
+          🗑️ 전체 데이터 삭제
+        </button>
       </div>
 
       {/* Sign Out */}

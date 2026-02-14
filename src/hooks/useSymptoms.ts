@@ -63,6 +63,30 @@ export function useSymptoms(date?: string) {
     },
   })
 
+  const updateSymptom = useMutation({
+    mutationFn: async ({
+      id,
+      ...updates
+    }: {
+      id: string
+      severity?: 1 | 2 | 3 | 4 | 5
+      notes?: string | null
+    }) => {
+      const { data, error } = await supabase
+        .from('symptoms')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as Symptom
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['symptoms', user?.id] })
+    },
+  })
+
   const deleteSymptom = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('symptoms').delete().eq('id', id)
@@ -77,6 +101,7 @@ export function useSymptoms(date?: string) {
     symptoms,
     isLoading,
     addSymptom,
+    updateSymptom,
     deleteSymptom,
   }
 }

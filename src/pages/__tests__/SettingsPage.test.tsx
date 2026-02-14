@@ -68,4 +68,19 @@ describe('SettingsPage', () => {
     expect(screen.getByText('28일')).toBeInTheDocument()
     expect(screen.getByText('5일')).toBeInTheDocument()
   })
+
+  it('위험 구역 섹션 표시', () => {
+    renderWithProviders(<SettingsPage />, { withAuth: true })
+    expect(screen.getByText(/위험 구역/)).toBeInTheDocument()
+  })
+
+  it('전체 데이터 삭제 버튼 존재', () => {
+    renderWithProviders(<SettingsPage />, { withAuth: true })
+    expect(screen.getByText(/전체 데이터 삭제/)).toBeInTheDocument()
+  })
+
+  it('위험 구역 설명 텍스트 표시', () => {
+    renderWithProviders(<SettingsPage />, { withAuth: true })
+    expect(screen.getByText(/되돌릴 수 없습니다/)).toBeInTheDocument()
+  })
 })
