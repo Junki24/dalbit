@@ -1,6 +1,12 @@
+import { useCallback } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
+import { OfflineBanner } from '@/components/OfflineBanner'
+import { usePageTransition } from '@/hooks/usePageTransition'
+import { usePullToRefresh } from '@/hooks/usePullToRefresh'
+import { useHaptic } from '@/hooks/useHaptic'
 import './Layout.css'
 
 const NAV_ITEMS = [
@@ -11,11 +17,32 @@ const NAV_ITEMS = [
   { path: '/settings', icon: '⚙️', label: '설정' },
 ]
 
+function PageContent() {
+  const { className } = usePageTransition()
+  return (
+    <div className={className}>
+      <Outlet />
+    </div>
+  )
+}
+
 export function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { periods } = usePeriods()
   const { phaseInfo } = useCyclePrediction(periods)
+  const { vibrate } = useHaptic()
+
+  const handleRefresh = useCallback(async () => {
+    vibrate('light')
+    await queryClient.invalidateQueries()
+  }, [queryClient, vibrate])
+
+  const { isRefreshing, pullDistance, handlers } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+  })
 
   return (
     <div className="layout">
@@ -34,11 +61,26 @@ export function Layout() {
         )}
       </header>
 
-      <main className="main-content">
-        <Outlet />
+      <main
+        className="main-content"
+        {...handlers}
+      >
+        {/* Pull-to-refresh indicator */}
+        {(pullDistance > 0 || isRefreshing) && (
+          <div
+            className="pull-indicator"
+            style={{ height: pullDistance }}
+          >
+            <span className={`pull-spinner ${isRefreshing ? 'pull-spinner--active' : ''}`}>
+              {isRefreshing ? '🔄' : '⬇️'}
+            </span>
+          </div>
+        )}
+        <OfflineBanner />
+        <PageContent />
       </main>
 
-      <nav className="bottom-nav">
+      <nav className="bottom-nav" role="navigation" aria-label="메인 내비게이션">
         {NAV_ITEMS.map((item) => {
           const isActive = location.pathname === item.path
           return (
@@ -46,8 +88,10 @@ export function Layout() {
               key={item.path}
               className={`nav-item ${isActive ? 'nav-item--active' : ''}`}
               onClick={() => navigate(item.path)}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-icon" aria-hidden="true">{item.icon}</span>
               <span className="nav-label">{item.label}</span>
             </button>
           )
