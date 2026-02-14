@@ -2,6 +2,8 @@ import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useNotifications } from '@/hooks/useNotifications'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
@@ -10,6 +12,8 @@ import './SettingsPage.css'
 export function SettingsPage() {
   const { user, userSettings, signOut, updateUserSettings } = useAuth()
   const { showToast, confirm } = useToast()
+  const { theme, toggleTheme } = useTheme()
+  const { requestPermission, isSupported, permission } = useNotifications()
   const { periods } = usePeriods()
   const { symptoms } = useSymptoms()
   const [displayName, setDisplayName] = useState(userSettings?.display_name ?? '')
@@ -248,6 +252,68 @@ export function SettingsPage() {
         >
           {saving ? '저장 중...' : '설정 저장'}
         </button>
+      </div>
+
+      {/* Theme */}
+      <div className="settings-section">
+        <h3 className="settings-section-title">🎨 테마</h3>
+        <div className="settings-field">
+          <label>{theme === 'dark' ? '🌙 다크 모드' : '☀️ 라이트 모드'}</label>
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={`${theme === 'dark' ? '라이트' : '다크'} 모드로 전환`}
+          >
+            <span className={`theme-toggle-track ${theme === 'light' ? 'theme-toggle-track--light' : ''}`}>
+              <span className="theme-toggle-thumb" />
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Notifications */}
+      <div className="settings-section">
+        <h3 className="settings-section-title">🔔 알림</h3>
+        <div className="settings-field">
+          <label>기록 리마인더</label>
+          {!isSupported ? (
+            <span className="settings-value">미지원 브라우저</span>
+          ) : permission === 'granted' ? (
+            <button
+              className="theme-toggle"
+              onClick={async () => {
+                const enabled = !userSettings?.notifications_enabled
+                await updateUserSettings({ notifications_enabled: enabled })
+                showToast(enabled ? '알림이 활성화되었습니다.' : '알림이 비활성화되었습니다.', 'success')
+              }}
+            >
+              <span className={`theme-toggle-track ${userSettings?.notifications_enabled ? 'theme-toggle-track--light' : ''}`}>
+                <span className="theme-toggle-thumb" />
+              </span>
+            </button>
+          ) : permission === 'denied' ? (
+            <span className="settings-value">알림 차단됨</span>
+          ) : (
+            <button
+              className="btn-invite"
+              style={{ width: 'auto', padding: '8px 16px', fontSize: '0.8rem' }}
+              onClick={async () => {
+                const granted = await requestPermission()
+                if (granted) {
+                  await updateUserSettings({ notifications_enabled: true })
+                  showToast('알림이 활성화되었습니다!', 'success')
+                } else {
+                  showToast('알림 권한이 거부되었습니다.', 'error')
+                }
+              }}
+            >
+              알림 허용
+            </button>
+          )}
+        </div>
+        <p className="settings-hint">
+          매일 저녁 9시에 오늘의 기록을 남기라는 리마인더를 받습니다.
+        </p>
       </div>
 
       {/* Partner Sharing */}

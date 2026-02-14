@@ -3,7 +3,9 @@ import { format, parseISO, differenceInDays } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
+import { useAuth } from '@/contexts/AuthContext'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
+import { generatePdfReport } from '@/lib/pdf-export'
 import { SYMPTOM_LABELS, SYMPTOM_ICONS } from '@/types'
 import type { SymptomType, Period } from '@/types'
 import './StatsPage.css'
@@ -18,6 +20,7 @@ interface CycleHistory {
 export function StatsPage() {
   const { periods } = usePeriods()
   const { symptoms } = useSymptoms()
+  const { userSettings } = useAuth()
   const { prediction } = useCyclePrediction(periods)
 
   // Calculate cycle history
@@ -395,10 +398,18 @@ export function StatsPage() {
             </div>
           </div>
 
-          {/* CSV Export */}
-          <button className="btn-csv-export" onClick={handleExportCsv}>
-            📊 통계 CSV 내보내기
-          </button>
+          {/* Export Buttons */}
+          <div className="export-buttons">
+            <button className="btn-csv-export" onClick={handleExportCsv}>
+              📊 CSV 내보내기
+            </button>
+            <button
+              className="btn-csv-export"
+              onClick={() => generatePdfReport({ periods, symptoms, userSettings })}
+            >
+              🖨️ PDF 리포트
+            </button>
+          </div>
         </>
       )}
     </div>
