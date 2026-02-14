@@ -70,10 +70,11 @@ serve(async (req) => {
       return jsonResponse({ error: '로그인이 필요합니다.' }, 401)
     }
 
+    const token = authHeader.replace('Bearer ', '')
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     })
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
       return jsonResponse({ error: '인증 실패: ' + (authError?.message ?? 'invalid token') }, 401)
     }
