@@ -35,7 +35,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select('*')
       .eq('user_id', userId)
       .single()
-    if (data) setUserSettings(data as UserSettings)
+    if (data) {
+      // Self-heal: if user consented but consent_date is missing, set it to created_at
+      if (data.health_data_consent && !data.consent_date) {
+        const fixedDate = data.created_at ?? new Date().toISOString()
+        await supabase
+          .from('user_settings')
+          .update({ consent_date: fixedDate })
+          .eq('user_id', userId)
+        data.consent_date = fixedDate
+      }
+      setUserSettings(data as UserSettings)
+    }
   }, [])
 
   const refetchSettings = useCallback(async () => {
@@ -98,17 +109,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUserSettings = useCallback(
     async (updates: Partial<UserSettings>) => {
       if (!user || !isSupabaseConfigured) return
+
+      // Preserve consent_date: once set, never overwrite
+      const merged = {
+        user_id: user.id,
+        ...userSettings,
+        ...updates,
+        updated_at: new Date().toISOString(),
+      }
+      // If consent was already given, keep original date
+      if (userSettings?.consent_date && !updates.consent_date) {
+        merged.consent_date = userSettings.consent_date
+      }
+
       const { data, error } = await supabase
         .from('user_settings')
-        .upsert(
-          {
-            user_id: user.id,
-            ...userSettings,
-            ...updates,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'user_id' }
-        )
+        .upsert(merged, { onConflict: 'user_id' })
         .select()
         .single()
 
