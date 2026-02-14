@@ -463,6 +463,7 @@ export function SettingsPage() {
               <div>
                 <strong>기록</strong>
                 <p>생리 시작/종료, 유량, 증상, 약 복용, 관계일, 메모를 한 화면에서 기록해요. 날짜를 좌우로 넘기면 다른 날짜도 기록할 수 있어요.</p>
+                <p style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>💡 생리 기간은 기본 5일로 예측되지만, 종료 버튼을 눌러 실제 종료일을 기록하면 예측이 더 정확해져요!</p>
               </div>
             </div>
             <div className="guide-item">
