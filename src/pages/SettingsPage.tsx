@@ -369,7 +369,7 @@ export function SettingsPage() {
             onClick={toggleTheme}
             aria-label={`${theme === 'dark' ? '라이트' : '다크'} 모드로 전환`}
           >
-            <span className={`theme-toggle-track ${theme === 'light' ? 'theme-toggle-track--light' : ''}`}>
+            <span className={`theme-toggle-track ${theme === 'dark' ? 'theme-toggle-track--active' : ''}`}>
               <span className="theme-toggle-thumb" />
             </span>
           </button>
@@ -392,7 +392,7 @@ export function SettingsPage() {
                 showToast(enabled ? '알림이 활성화되었습니다.' : '알림이 비활성화되었습니다.', 'success')
               }}
             >
-              <span className={`theme-toggle-track ${userSettings?.notifications_enabled ? 'theme-toggle-track--light' : ''}`}>
+              <span className={`theme-toggle-track ${userSettings?.notifications_enabled ? 'theme-toggle-track--active' : ''}`}>
                 <span className="theme-toggle-thumb" />
               </span>
             </button>
