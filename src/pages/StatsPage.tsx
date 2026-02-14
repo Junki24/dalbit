@@ -3,11 +3,12 @@ import { format, parseISO, differenceInDays } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
+import { useSymptomPatterns } from '@/hooks/useSymptomPatterns'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
 import { generatePdfReport } from '@/lib/pdf-export'
 import { SYMPTOM_LABELS, SYMPTOM_ICONS } from '@/types'
-import type { SymptomType, Period } from '@/types'
+import type { SymptomType, CyclePhase, Period } from '@/types'
 import './StatsPage.css'
 
 interface CycleHistory {
@@ -17,11 +18,20 @@ interface CycleHistory {
   periodLength: number | null
 }
 
+const PHASE_LABELS: Record<CyclePhase, string> = {
+  menstrual: '생리기',
+  follicular: '난포기',
+  ovulation: '배란기',
+  luteal: '황체기',
+}
+
 export function StatsPage() {
   const { periods } = usePeriods()
   const { symptoms } = useSymptoms()
   const { userSettings } = useAuth()
   const { prediction } = useCyclePrediction(periods)
+  const avgCycleLength = prediction?.averageCycleLength ?? userSettings?.average_cycle_length ?? 28
+  const symptomPatterns = useSymptomPatterns(periods, symptoms, avgCycleLength)
 
   // Calculate cycle history
   const cycleHistory = useMemo((): CycleHistory[] => {
@@ -213,6 +223,33 @@ export function StatsPage() {
         </div>
       ) : (
         <>
+          {/* Symptom Pattern Analysis */}
+          <div className="stats-section">
+            <h3 className="stats-section-title">🔮 증상 패턴 분석</h3>
+            {symptomPatterns.length > 0 ? (
+              <div className="pattern-list">
+                {symptomPatterns.slice(0, 8).map((p) => (
+                  <div key={`${p.symptomType}-${p.phase}`} className="pattern-item">
+                    <div className="pattern-symptom">
+                      <span className="pattern-icon">{SYMPTOM_ICONS[p.symptomType]}</span>
+                      <span className="pattern-name">{SYMPTOM_LABELS[p.symptomType]}</span>
+                    </div>
+                    <span className={`pattern-phase-badge pattern-phase--${p.phase}`}>
+                      {PHASE_LABELS[p.phase]}
+                    </span>
+                    <span className="pattern-stats">
+                      {Math.round(p.probability * 100)}% · {p.lift.toFixed(1)}x
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="stats-note" style={{ marginTop: 0 }}>
+                증상 패턴 분석에는 최소 3회 이상의 주기와 10일 이상의 증상 기록이 필요합니다. 꾸준히 기록해 주세요!
+              </p>
+            )}
+          </div>
+
           {/* Cycle Overview */}
           <div className="stats-section">
             <h3 className="stats-section-title">🔄 주기 분석</h3>

@@ -24,6 +24,7 @@ import {
   isDateInPredictedPeriod,
   isDateInFertileWindow,
   isOvulationDay,
+  getFlowForDate,
 } from '@/lib/cycle'
 import { SYMPTOM_ICONS, SYMPTOM_LABELS, FLOW_LABELS } from '@/types'
 import type { CalendarDay, SymptomType } from '@/types'
@@ -116,7 +117,7 @@ export function CalendarPage() {
         isToday: isSameDay(date, today),
         isCurrentMonth: isSameMonth(date, currentMonth),
         symptoms: daySymptoms,
-        flowIntensity: period?.flow_intensity ?? null,
+        flowIntensity: getFlowForDate(period, dateStr),
       }
     })
   }, [currentMonth, periods, symptoms, prediction])

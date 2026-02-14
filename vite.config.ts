@@ -77,6 +77,15 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'pdf-vendor': ['@react-pdf/renderer'],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': '/src',

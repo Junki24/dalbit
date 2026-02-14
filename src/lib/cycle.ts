@@ -5,7 +5,7 @@ import {
   isWithinInterval,
   startOfDay,
 } from 'date-fns'
-import type { Period, CyclePrediction, CyclePhaseInfo } from '@/types'
+import type { Period, CyclePrediction, CyclePhaseInfo, FlowIntensity } from '@/types'
 
 /**
  * Calculate cycle prediction based on period history
@@ -117,6 +117,18 @@ export function getCyclePhaseInfo(
     partnerTip: 'PMS 증상이 나타날 수 있어요. 기분 변화에 인내심을 가져주세요. 단 음식이 당길 수 있습니다.',
     color: 'var(--color-primary)',
   }
+}
+
+/**
+ * Get flow intensity for a specific date from a period record.
+ * Checks per-day map first, falls back to period-level default.
+ */
+export function getFlowForDate(
+  period: Period | null,
+  dateStr: string
+): FlowIntensity | null {
+  if (!period) return null
+  return period.flow_intensities?.[dateStr] ?? period.flow_intensity ?? null
 }
 
 /**

@@ -4,6 +4,7 @@ import {
   calculateCyclePrediction,
   getCycleDay,
   getCyclePhaseInfo,
+  getFlowForDate,
   isDateInPeriod,
   isDateInPredictedPeriod,
   isDateInFertileWindow,
@@ -26,6 +27,7 @@ function makePeriod(
     start_date: startDate,
     end_date: endDate ?? null,
     flow_intensity: flowIntensity ?? null,
+    flow_intensities: flowIntensity ? { [startDate]: flowIntensity } : null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     deleted_at: null,
@@ -239,6 +241,44 @@ describe('getCyclePhaseInfo', () => {
     expect(getCyclePhaseInfo(6, 30).phase).toBe('follicular')
     expect(getCyclePhaseInfo(16, 30).phase).toBe('ovulation')
     expect(getCyclePhaseInfo(18, 30).phase).toBe('luteal')
+  })
+})
+
+// ============================================
+// getFlowForDate
+// ============================================
+
+describe('getFlowForDate', () => {
+  it('null period면 null 반환', () => {
+    expect(getFlowForDate(null, '2025-03-01')).toBeNull()
+  })
+
+  it('per-day map에 해당 날짜가 있으면 해당 값 반환', () => {
+    const period = makePeriod('2025-03-01', '2025-03-05', 'medium')
+    period.flow_intensities = {
+      '2025-03-01': 'light',
+      '2025-03-02': 'heavy',
+    }
+    expect(getFlowForDate(period, '2025-03-01')).toBe('light')
+    expect(getFlowForDate(period, '2025-03-02')).toBe('heavy')
+  })
+
+  it('per-day map에 없으면 period-level flow_intensity 반환', () => {
+    const period = makePeriod('2025-03-01', '2025-03-05', 'medium')
+    period.flow_intensities = { '2025-03-01': 'light' }
+    expect(getFlowForDate(period, '2025-03-03')).toBe('medium')
+  })
+
+  it('flow_intensities가 null이면 flow_intensity 반환', () => {
+    const period = makePeriod('2025-03-01', '2025-03-05', 'heavy')
+    period.flow_intensities = null
+    expect(getFlowForDate(period, '2025-03-01')).toBe('heavy')
+  })
+
+  it('둘 다 없으면 null 반환', () => {
+    const period = makePeriod('2025-03-01', '2025-03-05')
+    period.flow_intensities = null
+    expect(getFlowForDate(period, '2025-03-01')).toBeNull()
   })
 })
 

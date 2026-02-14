@@ -6,6 +6,7 @@ import { usePeriods } from '@/hooks/usePeriods'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { useInsights } from '@/hooks/useInsights'
+import { useDailyTips } from '@/hooks/useDailyTips'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAppStore } from '@/lib/store'
 import { InstallBanner } from '@/components/InstallBanner'
@@ -16,7 +17,7 @@ import {
   isDateInFertileWindow,
   isOvulationDay,
 } from '@/lib/cycle'
-import { SYMPTOM_ICONS, SYMPTOM_LABELS } from '@/types'
+import { SYMPTOM_ICONS, SYMPTOM_LABELS, TIP_CATEGORY_LABELS, TIP_CATEGORY_ICONS } from '@/types'
 import type { SymptomType, Period, Symptom, CyclePrediction } from '@/types'
 import './HomePage.css'
 
@@ -182,6 +183,7 @@ export function HomePage() {
   const { symptoms: allSymptoms } = useSymptoms()
   const setSelectedDate = useAppStore((s) => s.setSelectedDate)
   const insights = useInsights(periods, allSymptoms, prediction, cycleDay)
+  const { tips } = useDailyTips(phaseInfo?.phase ?? null)
 
   const totalDays = prediction?.averageCycleLength ?? userSettings?.average_cycle_length ?? 28
   const phaseColor = phaseInfo?.color ?? 'var(--color-primary)'
@@ -311,6 +313,31 @@ export function HomePage() {
           <div className="insights-list">
             {insights.map((insight) => (
               <InsightCard key={insight.id} insight={insight} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* ── Daily Tips ── */}
+      {tips.length > 0 && (
+        <>
+          <div className="section-header">
+            <h3>💡 오늘의 팁</h3>
+          </div>
+          <div className="tips-list">
+            {tips.map((tip) => (
+              <div key={tip.id} className="tip-card">
+                <span className="tip-emoji">{tip.emoji}</span>
+                <div className="tip-content">
+                  <div className="tip-header">
+                    <span className="tip-title">{tip.title}</span>
+                    <span className="tip-category-badge">
+                      {TIP_CATEGORY_ICONS[tip.category]} {TIP_CATEGORY_LABELS[tip.category]}
+                    </span>
+                  </div>
+                  <span className="tip-body">{tip.body}</span>
+                </div>
+              </div>
             ))}
           </div>
         </>

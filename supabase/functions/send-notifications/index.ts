@@ -16,6 +16,20 @@ webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
+// ── CORS headers (browser fetch needs these) ──
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-cron-secret, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+function jsonResponse(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
+  })
+}
+
 // ── Types ──
 interface PushSub {
   id: string
@@ -147,33 +161,81 @@ function determineNotification(
 
 // ── Main handler ──
 serve(async (req) => {
-  // Verify authorization (cron or manual trigger)
-  const authHeader = req.headers.get('Authorization')
-  if (authHeader !== `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`) {
-    // Allow cron calls (they send the service role key)
-    const cronSecret = req.headers.get('x-cron-secret')
-    if (cronSecret !== Deno.env.get('CRON_SECRET')) {
-      return new Response('Unauthorized', { status: 401 })
-    }
+  // CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
   }
 
-  const today = new Date().toISOString().slice(0, 10)
-  let sent = 0
-  let failed = 0
-  let skipped = 0
-
   try {
-    // 1. Get all users with notifications enabled
-    const { data: users, error: usersError } = await supabase
+    // Verify authorization (cron, service role, or authenticated user)
+    const authHeader = req.headers.get('Authorization')
+    const cronSecret = req.headers.get('x-cron-secret')
+    let filterUserId: string | null = null
+
+    // Check if JWT has service_role
+    const isServiceRole = (() => {
+      try {
+        const token = authHeader?.replace('Bearer ', '') ?? ''
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        return payload.role === 'service_role'
+      } catch { return false }
+    })()
+
+    if (isServiceRole) {
+      // Service role — send to all
+    } else if (cronSecret === Deno.env.get('CRON_SECRET')) {
+      // Cron job — send to all
+    } else if (authHeader?.startsWith('Bearer ')) {
+      // Authenticated user — send only to themselves (test mode)
+      // Use top-level createClient (NOT dynamic import — that crashes Deno edge)
+      const userClient = createClient(
+        SUPABASE_URL,
+        Deno.env.get('SUPABASE_ANON_KEY') ?? SUPABASE_SERVICE_ROLE_KEY,
+        { global: { headers: { Authorization: authHeader } } }
+      )
+      const { data: { user }, error } = await userClient.auth.getUser()
+      if (error || !user) {
+        return jsonResponse({ error: 'Unauthorized: ' + (error?.message ?? 'invalid token') }, 401)
+      }
+      filterUserId = user.id
+    } else {
+      return jsonResponse({ error: 'Unauthorized' }, 401)
+    }
+
+    // Check for broadcast mode (one-time announcements)
+    let broadcastPayload: NotificationPayload | null = null
+    try {
+      const body = await req.json().catch(() => null)
+      if (body?.broadcast && body?.title && body?.body) {
+        broadcastPayload = {
+          title: body.title,
+          body: body.body,
+          tag: body.tag || 'dalbit-announce',
+          url: body.url || '/',
+        }
+      }
+    } catch { /* no body */ }
+
+    const today = new Date().toISOString().slice(0, 10)
+    let sent = 0
+    let failed = 0
+    let skipped = 0
+    const errors: string[] = []
+
+    // 1. Get users with notifications enabled (filtered for test mode)
+    let usersQuery = supabase
       .from('user_settings')
       .select('user_id, display_name, average_cycle_length, notifications_enabled')
       .eq('notifications_enabled', true)
 
+    if (filterUserId) {
+      usersQuery = usersQuery.eq('user_id', filterUserId)
+    }
+
+    const { data: users, error: usersError } = await usersQuery
+
     if (usersError || !users) {
-      return new Response(JSON.stringify({ error: usersError?.message }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ error: 'DB error: ' + (usersError?.message ?? 'no users') }, 500)
     }
 
     for (const user of users as UserSettings[]) {
@@ -205,7 +267,7 @@ serve(async (req) => {
         .eq('date', today)
 
       // 5. Determine notification content
-      const notification = determineNotification(
+      const notification = broadcastPayload ?? determineNotification(
         (periods ?? []) as Period[],
         (symptoms ?? []) as { date: string }[],
         user,
@@ -229,24 +291,19 @@ serve(async (req) => {
           )
           sent++
         } catch (err: unknown) {
-          const pushErr = err as { statusCode?: number }
+          const pushErr = err as { statusCode?: number; body?: string }
           // Remove expired/invalid subscriptions
           if (pushErr.statusCode === 404 || pushErr.statusCode === 410) {
             await supabase.from('push_subscriptions').delete().eq('id', sub.id)
           }
+          errors.push(`sub=${sub.id}: ${pushErr.statusCode ?? 'unknown'}`)
           failed++
         }
       }
     }
 
-    return new Response(
-      JSON.stringify({ ok: true, sent, failed, skipped, date: today }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    )
+    return jsonResponse({ ok: true, sent, failed, skipped, errors, date: today })
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: String(err) }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    )
+    return jsonResponse({ error: String(err) }, 500)
   }
 })

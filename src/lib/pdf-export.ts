@@ -1,6 +1,6 @@
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { SYMPTOM_LABELS, SYMPTOM_ICONS } from '@/types'
+import { SYMPTOM_LABELS } from '@/types'
 import type { Period, Symptom, SymptomType, UserSettings } from '@/types'
 
 interface ExportData {
@@ -9,12 +9,173 @@ interface ExportData {
   userSettings: UserSettings | null
 }
 
-export function generatePdfReport({ periods, symptoms, userSettings }: ExportData) {
+/**
+ * Lazy-load @react-pdf/renderer and generate a downloadable PDF.
+ * The library is ~600KB, so we dynamic-import to keep the initial bundle small.
+ */
+export async function generatePdfReport({ periods, symptoms, userSettings }: ExportData) {
+  const [reactPdf, React] = await Promise.all([
+    import('@react-pdf/renderer'),
+    import('react'),
+  ])
+
+  const { Document, Page, Text, View, StyleSheet, Font, pdf } = reactPdf
+
+  // Register Korean font (Noto Sans KR from Google Fonts CDN — TTF only)
+  Font.register({
+    family: 'NotoSansKR',
+    fonts: [
+      {
+        src: 'https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLTq8H4hfeE.ttf',
+        fontWeight: 400,
+      },
+      {
+        src: 'https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuo7eLTq8H4hfeE.ttf',
+        fontWeight: 700,
+      },
+    ],
+  })
+
+  const styles = StyleSheet.create({
+    page: {
+      fontFamily: 'NotoSansKR',
+      padding: 40,
+      fontSize: 10,
+      color: '#1e293b',
+      lineHeight: 1.6,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 700,
+      color: '#7c3aed',
+      marginBottom: 4,
+    },
+    subtitle: {
+      fontSize: 9,
+      color: '#64748b',
+      marginBottom: 20,
+    },
+    disclaimer: {
+      backgroundColor: '#fffbeb',
+      borderWidth: 1,
+      borderColor: '#fde68a',
+      borderRadius: 6,
+      padding: 10,
+      fontSize: 8,
+      color: '#92400e',
+      marginBottom: 20,
+    },
+    sectionTitle: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: '#374151',
+      marginTop: 18,
+      marginBottom: 10,
+      paddingBottom: 4,
+      borderBottomWidth: 2,
+      borderBottomColor: '#e5e7eb',
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      gap: 10,
+      marginBottom: 16,
+    },
+    statBox: {
+      flex: 1,
+      backgroundColor: '#f8fafc',
+      borderWidth: 1,
+      borderColor: '#e2e8f0',
+      borderRadius: 6,
+      padding: 12,
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: 18,
+      fontWeight: 700,
+      color: '#7c3aed',
+    },
+    statLabel: {
+      fontSize: 8,
+      color: '#64748b',
+      marginTop: 2,
+    },
+    tableHeader: {
+      flexDirection: 'row',
+      backgroundColor: '#f1f5f9',
+      borderBottomWidth: 2,
+      borderBottomColor: '#e2e8f0',
+      paddingVertical: 6,
+      paddingHorizontal: 8,
+    },
+    tableRow: {
+      flexDirection: 'row',
+      borderBottomWidth: 1,
+      borderBottomColor: '#f1f5f9',
+      paddingVertical: 5,
+      paddingHorizontal: 8,
+    },
+    tableRowEven: {
+      backgroundColor: '#fafbfc',
+    },
+    thCell: {
+      fontWeight: 700,
+      fontSize: 9,
+    },
+    tdCell: {
+      fontSize: 9,
+    },
+    col1: { width: '28%' },
+    col2: { width: '22%' },
+    col3: { width: '22%' },
+    col4: { width: '28%' },
+    symptomRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 4,
+      gap: 8,
+    },
+    symptomName: {
+      width: 80,
+      fontWeight: 700,
+      fontSize: 9,
+    },
+    symptomCount: {
+      width: 36,
+      fontSize: 8,
+      color: '#64748b',
+    },
+    severityBarBg: {
+      width: 80,
+      height: 6,
+      backgroundColor: '#e5e7eb',
+      borderRadius: 3,
+    },
+    severityBarFill: {
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: '#f59e0b',
+    },
+    symptomSeverity: {
+      fontSize: 8,
+      color: '#64748b',
+      marginLeft: 4,
+    },
+    footer: {
+      marginTop: 30,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: '#e5e7eb',
+      fontSize: 7,
+      color: '#94a3b8',
+      textAlign: 'center',
+    },
+  })
+
+  // ── Compute data ──
   const sorted = [...periods].sort(
     (a, b) => parseISO(b.start_date).getTime() - parseISO(a.start_date).getTime()
   )
 
-  // Calculate cycle stats
   const cycleLengths: number[] = []
   for (let i = 0; i < sorted.length - 1; i++) {
     const diff = differenceInDays(
@@ -30,7 +191,6 @@ export function generatePdfReport({ periods, symptoms, userSettings }: ExportDat
   const minCycle = cycleLengths.length > 0 ? Math.min(...cycleLengths) : null
   const maxCycle = cycleLengths.length > 0 ? Math.max(...cycleLengths) : null
 
-  // Top symptoms
   const symptomCounts = new Map<SymptomType, { count: number; totalSeverity: number }>()
   for (const s of symptoms) {
     const type = s.symptom_type as SymptomType
@@ -45,110 +205,109 @@ export function generatePdfReport({ periods, symptoms, userSettings }: ExportDat
     .slice(0, 8)
 
   const today = format(new Date(), 'yyyy년 M월 d일', { locale: ko })
+  const displayName = userSettings?.display_name
 
-  const html = `
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>달빛 - 생리주기 리포트</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Noto Sans KR', system-ui, sans-serif; color: #1e293b; line-height: 1.7; padding: 40px; max-width: 800px; margin: 0 auto; }
-    h1 { font-size: 1.6rem; color: #7c3aed; margin-bottom: 4px; }
-    h2 { font-size: 1.1rem; color: #374151; margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e5e7eb; }
-    .subtitle { color: #64748b; font-size: 0.85rem; margin-bottom: 24px; }
-    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-    .stat-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; }
-    .stat-value { font-size: 1.4rem; font-weight: 800; color: #7c3aed; }
-    .stat-label { font-size: 0.75rem; color: #64748b; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.85rem; }
-    th { background: #f1f5f9; padding: 8px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
-    td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
-    tr:nth-child(even) { background: #fafbfc; }
-    .symptom-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
-    .severity-bar { height: 8px; border-radius: 4px; background: #e5e7eb; width: 100px; overflow: hidden; }
-    .severity-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #ef4444); border-radius: 4px; }
-    .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; font-size: 0.75rem; color: #94a3b8; text-align: center; }
-    .disclaimer { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; font-size: 0.78rem; color: #92400e; margin: 20px 0; }
-    @media print { body { padding: 20px; } }
-  </style>
-</head>
-<body>
-  <h1>🌙 달빛 — 생리주기 리포트</h1>
-  <p class="subtitle">${userSettings?.display_name ? `${userSettings.display_name} · ` : ''}생성일: ${today}</p>
+  // ── Build period table rows ──
+  const periodRows = sorted.slice(0, 12).map((p, i) => {
+    const next = sorted[i + 1]
+    const cycleLen = next
+      ? differenceInDays(parseISO(p.start_date), parseISO(next.start_date))
+      : null
+    const periodLen = p.end_date
+      ? differenceInDays(parseISO(p.end_date), parseISO(p.start_date)) + 1
+      : null
 
-  <div class="disclaimer">
-    ⚠️ 이 리포트는 참고용이며, 의학적 진단을 대체하지 않습니다. 정확한 진단은 전문 의료인과 상담하세요.
-  </div>
-
-  <h2>📊 주기 통계</h2>
-  <div class="stats-grid">
-    <div class="stat-box">
-      <div class="stat-value">${avgCycle ?? '-'}</div>
-      <div class="stat-label">평균 주기 (일)</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-value">${minCycle && maxCycle ? `${minCycle}~${maxCycle}` : '-'}</div>
-      <div class="stat-label">주기 범위 (일)</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-value">${sorted.length}</div>
-      <div class="stat-label">기록된 주기 수</div>
-    </div>
-  </div>
-
-  <h2>📅 생리 기록 (최근 12회)</h2>
-  <table>
-    <thead>
-      <tr><th>시작일</th><th>종료일</th><th>기간</th><th>주기</th></tr>
-    </thead>
-    <tbody>
-      ${sorted.slice(0, 12).map((p, i) => {
-        const next = sorted[i + 1]
-        const cycleLen = next
-          ? differenceInDays(parseISO(p.start_date), parseISO(next.start_date))
-          : null
-        const periodLen = p.end_date
-          ? differenceInDays(parseISO(p.end_date), parseISO(p.start_date)) + 1
-          : null
-        return `<tr>
-          <td>${format(parseISO(p.start_date), 'yyyy.M.d')}</td>
-          <td>${p.end_date ? format(parseISO(p.end_date), 'M.d') : '-'}</td>
-          <td>${periodLen ? `${periodLen}일` : '-'}</td>
-          <td>${cycleLen && cycleLen > 0 && cycleLen < 60 ? `${cycleLen}일` : '-'}</td>
-        </tr>`
-      }).join('')}
-    </tbody>
-  </table>
-
-  ${topSymptoms.length > 0 ? `
-  <h2>📝 증상 요약</h2>
-  ${topSymptoms.map(([type, { count, totalSeverity }]) => {
-    const avgSev = Math.round((totalSeverity / count) * 10) / 10
-    return `<div class="symptom-row">
-      <span style="width:24px">${SYMPTOM_ICONS[type]}</span>
-      <span style="width:80px;font-weight:500">${SYMPTOM_LABELS[type]}</span>
-      <span style="width:40px;color:#64748b;font-size:0.8rem">${count}회</span>
-      <div class="severity-bar"><div class="severity-fill" style="width:${(avgSev / 5) * 100}%"></div></div>
-      <span style="font-size:0.8rem;color:#64748b">심각도 ${avgSev}/5</span>
-    </div>`
-  }).join('')}
-  ` : ''}
-
-  <div class="footer">
-    달빛 v1.0.0 · 이 리포트는 자동 생성되었습니다.
-  </div>
-</body>
-</html>`
-
-  // Open in new window for printing
-  const printWindow = window.open('', '_blank')
-  if (printWindow) {
-    printWindow.document.write(html)
-    printWindow.document.close()
-    printWindow.onload = () => {
-      printWindow.print()
+    return {
+      startDate: format(parseISO(p.start_date), 'yyyy.M.d'),
+      endDate: p.end_date ? format(parseISO(p.end_date), 'M.d') : '-',
+      periodLen: periodLen ? `${periodLen}일` : '-',
+      cycleLen: cycleLen && cycleLen > 0 && cycleLen < 60 ? `${cycleLen}일` : '-',
     }
-  }
+  })
+
+  // ── Create PDF document using createElement (no JSX in .ts) ──
+  const h = React.createElement
+
+  const doc = h(Document, null,
+    h(Page, { size: 'A4', style: styles.page },
+      // Title
+      h(Text, { style: styles.title }, '달빛 — 생리주기 리포트'),
+      h(Text, { style: styles.subtitle },
+        `${displayName ? `${displayName} · ` : ''}생성일: ${today}`
+      ),
+
+      // Disclaimer
+      h(View, { style: styles.disclaimer },
+        h(Text, null, '이 리포트는 참고용이며, 의학적 진단을 대체하지 않습니다. 정확한 진단은 전문 의료인과 상담하세요.')
+      ),
+
+      // Cycle Stats
+      h(Text, { style: styles.sectionTitle }, '주기 통계'),
+      h(View, { style: styles.statsGrid },
+        h(View, { style: styles.statBox },
+          h(Text, { style: styles.statValue }, avgCycle !== null ? String(avgCycle) : '-'),
+          h(Text, { style: styles.statLabel }, '평균 주기 (일)')
+        ),
+        h(View, { style: styles.statBox },
+          h(Text, { style: styles.statValue },
+            minCycle !== null && maxCycle !== null ? `${minCycle}~${maxCycle}` : '-'
+          ),
+          h(Text, { style: styles.statLabel }, '주기 범위 (일)')
+        ),
+        h(View, { style: styles.statBox },
+          h(Text, { style: styles.statValue }, String(sorted.length)),
+          h(Text, { style: styles.statLabel }, '기록된 주기 수')
+        )
+      ),
+
+      // Period Table
+      h(Text, { style: styles.sectionTitle }, '생리 기록 (최근 12회)'),
+      h(View, { style: styles.tableHeader },
+        h(Text, { style: { ...styles.thCell, ...styles.col1 } }, '시작일'),
+        h(Text, { style: { ...styles.thCell, ...styles.col2 } }, '종료일'),
+        h(Text, { style: { ...styles.thCell, ...styles.col3 } }, '기간'),
+        h(Text, { style: { ...styles.thCell, ...styles.col4 } }, '주기')
+      ),
+      ...periodRows.map((row, i) =>
+        h(View, { key: String(i), style: { ...styles.tableRow, ...(i % 2 === 1 ? styles.tableRowEven : {}) } },
+          h(Text, { style: { ...styles.tdCell, ...styles.col1 } }, row.startDate),
+          h(Text, { style: { ...styles.tdCell, ...styles.col2 } }, row.endDate),
+          h(Text, { style: { ...styles.tdCell, ...styles.col3 } }, row.periodLen),
+          h(Text, { style: { ...styles.tdCell, ...styles.col4 } }, row.cycleLen)
+        )
+      ),
+
+      // Top Symptoms
+      ...(topSymptoms.length > 0
+        ? [
+            h(Text, { style: styles.sectionTitle, key: 'symptom-title' }, '증상 요약'),
+            ...topSymptoms.map(([type, { count, totalSeverity }]) => {
+              const avgSev = Math.round((totalSeverity / count) * 10) / 10
+              return h(View, { key: type, style: styles.symptomRow },
+                h(Text, { style: styles.symptomName }, SYMPTOM_LABELS[type]),
+                h(Text, { style: styles.symptomCount }, `${count}회`),
+                h(View, { style: styles.severityBarBg },
+                  h(View, { style: { ...styles.severityBarFill, width: `${(avgSev / 5) * 100}%` } })
+                ),
+                h(Text, { style: styles.symptomSeverity }, `${avgSev}/5`)
+              )
+            }),
+          ]
+        : []),
+
+      // Footer
+      h(Text, { style: styles.footer }, '달빛 v1.0.0 · 이 리포트는 자동 생성되었습니다.')
+    )
+  )
+
+  // Generate blob and trigger download
+  const blob = await pdf(doc).toBlob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `dalbit-report-${new Date().toISOString().slice(0, 10)}.pdf`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }

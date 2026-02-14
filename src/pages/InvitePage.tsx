@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/contexts/ToastContext'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import './InvitePage.css'
 
-type InviteStatus = 'loading' | 'login_required' | 'valid' | 'expired' | 'already_accepted' | 'error' | 'accepted'
+type InviteStatus = 'loading' | 'login_required' | 'valid' | 'expired' | 'already_accepted' | 'error' | 'accepted' | 'own_invite'
 
 export function InvitePage() {
   const { code } = useParams<{ code: string }>()
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [status, setStatus] = useState<InviteStatus>('loading')
   const [ownerName, setOwnerName] = useState<string | null>(null)
   const [accepting, setAccepting] = useState(false)
@@ -29,72 +31,121 @@ export function InvitePage() {
 
     // Validate invite
     async function validateInvite() {
-      const { data, error } = await supabase
-        .from('partner_sharing')
-        .select('*')
-        .eq('invite_code', code)
-        .single()
+      try {
+        const { data, error } = await supabase
+          .from('partner_sharing')
+          .select('*')
+          .eq('invite_code', code)
+          .single()
 
-      if (error || !data) {
+        if (error || !data) {
+          setStatus('error')
+          return
+        }
+
+        // Check if already accepted
+        if (data.accepted) {
+          setStatus('already_accepted')
+          return
+        }
+
+        // Check expiry
+        if (new Date(data.invite_expires_at) < new Date()) {
+          setStatus('expired')
+          return
+        }
+
+        // Check if inviting yourself
+        if (data.owner_id === user!.id) {
+          setStatus('own_invite')
+          return
+        }
+
+        // Fetch owner display name
+        const { data: ownerSettings } = await supabase
+          .from('user_settings')
+          .select('display_name')
+          .eq('user_id', data.owner_id)
+          .single()
+
+        if (ownerSettings?.display_name) {
+          setOwnerName(ownerSettings.display_name)
+        }
+
+        setStatus('valid')
+      } catch (err) {
+        console.error('[달빛] 초대 검증 실패:', err)
         setStatus('error')
-        return
       }
-
-      // Check if already accepted
-      if (data.accepted) {
-        setStatus('already_accepted')
-        return
-      }
-
-      // Check expiry
-      if (new Date(data.invite_expires_at) < new Date()) {
-        setStatus('expired')
-        return
-      }
-
-      // Check if inviting yourself
-      if (data.owner_id === user!.id) {
-        setStatus('error')
-        return
-      }
-
-      // Fetch owner display name
-      const { data: ownerSettings } = await supabase
-        .from('user_settings')
-        .select('display_name')
-        .eq('user_id', data.owner_id)
-        .single()
-
-      if (ownerSettings?.display_name) {
-        setOwnerName(ownerSettings.display_name)
-      }
-
-      setStatus('valid')
     }
 
     validateInvite()
+
+    // Timeout fallback: if still loading after 10s, show error
+    const timeout = setTimeout(() => {
+      setStatus((prev) => prev === 'loading' ? 'error' : prev)
+    }, 10000)
+
+    return () => clearTimeout(timeout)
   }, [code, user, authLoading])
 
   const handleAccept = async () => {
     if (!user || !code) return
     setAccepting(true)
 
-    const { error } = await supabase
-      .from('partner_sharing')
-      .update({
-        partner_user_id: user.id,
-        accepted: true,
-      })
-      .eq('invite_code', code)
+    try {
+      // Re-validate before accepting to prevent race conditions
+      const { data: invite, error: checkError } = await supabase
+        .from('partner_sharing')
+        .select('*')
+        .eq('invite_code', code)
+        .single()
 
-    if (error) {
+      if (checkError || !invite) {
+        showToast('초대 정보를 확인할 수 없습니다.', 'error')
+        setStatus('error')
+        setAccepting(false)
+        return
+      }
+
+      if (invite.accepted) {
+        setStatus('already_accepted')
+        setAccepting(false)
+        return
+      }
+
+      if (new Date(invite.invite_expires_at) < new Date()) {
+        setStatus('expired')
+        setAccepting(false)
+        return
+      }
+
+      const { error } = await supabase
+        .from('partner_sharing')
+        .update({
+          partner_user_id: user.id,
+          accepted: true,
+        })
+        .eq('invite_code', code)
+        .eq('accepted', false)
+
+      if (error) {
+        console.error('[달빛] 초대 수락 실패:', error)
+        showToast('초대 수락에 실패했습니다. 다시 시도해주세요.', 'error')
+        setStatus('error')
+        setAccepting(false)
+        return
+      }
+
+      setStatus('accepted')
+      showToast('파트너와 연결되었습니다! 🎉', 'success')
+    } catch (err) {
+      console.error('[달빛] 초대 수락 오류:', err)
+      showToast('오류가 발생했습니다.', 'error')
       setStatus('error')
+    } finally {
       setAccepting(false)
-      return
     }
-
-    setStatus('accepted')
-    setAccepting(false)
   }
 
   const handleLogin = () => {
@@ -182,19 +233,32 @@ export function InvitePage() {
           </>
         )}
 
-        {status === 'already_accepted' && (
-          <>
-            <h1>이미 수락된 초대</h1>
-            <p className="invite-desc">
-              이 초대는 이미 수락되었습니다.
-            </p>
-            <button className="btn-primary" onClick={() => navigate('/')}>
-              홈으로 이동
-            </button>
-          </>
-        )}
+         {status === 'already_accepted' && (
+           <>
+             <h1>이미 수락된 초대</h1>
+             <p className="invite-desc">
+               이 초대는 이미 수락되었습니다.
+             </p>
+             <button className="btn-primary" onClick={() => navigate('/')}>
+               홈으로 이동
+             </button>
+           </>
+         )}
 
-        {status === 'error' && (
+         {status === 'own_invite' && (
+           <>
+             <h1>내 초대 링크</h1>
+             <p className="invite-desc">
+               이것은 본인의 초대 링크입니다.<br />
+               파트너에게 공유해주세요!
+             </p>
+             <button className="btn-primary" onClick={() => navigate('/settings')}>
+               설정으로 이동
+             </button>
+           </>
+         )}
+
+         {status === 'error' && (
           <>
             <h1>잘못된 초대</h1>
             <p className="invite-desc">

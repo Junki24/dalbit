@@ -9,11 +9,27 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Register PWA service worker
+// Clear chunk-reload flag on successful load (prevents stale flag)
+sessionStorage.removeItem('dalbit-chunk-reload')
+
+// PWA service worker: auto-update + reload on new version
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      // Service worker registration failed silently
-    })
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js')
+
+      // Check for updates every 5 minutes
+      setInterval(() => reg.update(), 5 * 60 * 1000)
+    } catch {
+      // SW registration failed silently
+    }
+  })
+
+  // Auto-reload when a new SW takes control (deploy happened)
+  let refreshing = false
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return
+    refreshing = true
+    window.location.reload()
   })
 }

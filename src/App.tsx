@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from 'react'
+import { useEffect, useRef, useCallback, Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
@@ -10,14 +10,38 @@ import { ToastContainer, ConfirmDialog } from '@/components/Toast'
 import { Layout } from '@/components/Layout'
 import { LoginPage } from '@/pages/LoginPage'
 
-const OnboardingPage = lazy(() => import('@/pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })))
-const HomePage = lazy(() => import('@/pages/HomePage').then(m => ({ default: m.HomePage })))
-const CalendarPage = lazy(() => import('@/pages/CalendarPage').then(m => ({ default: m.CalendarPage })))
-const RecordPage = lazy(() => import('@/pages/RecordPage').then(m => ({ default: m.RecordPage })))
-const SettingsPage = lazy(() => import('@/pages/SettingsPage').then(m => ({ default: m.SettingsPage })))
-const StatsPage = lazy(() => import('@/pages/StatsPage').then(m => ({ default: m.StatsPage })))
-const InvitePage = lazy(() => import('@/pages/InvitePage').then(m => ({ default: m.InvitePage })))
-const PartnerPage = lazy(() => import('@/pages/PartnerPage').then(m => ({ default: m.PartnerPage })))
+/**
+ * Lazy import with auto-reload on chunk load failure.
+ * After deploy, old cached pages reference chunk hashes that no longer exist.
+ * On failure, reload once to get fresh HTML with correct chunk URLs.
+ */
+function lazyWithReload<T extends { default: React.ComponentType }>(
+  factory: () => Promise<T>
+): React.LazyExoticComponent<T['default']> {
+  return lazy(() =>
+    factory().catch(() => {
+      // Chunk failed to load — likely stale cache after deploy.
+      // Reload once (sessionStorage flag prevents infinite loop).
+      const key = 'dalbit-chunk-reload'
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, '1')
+        window.location.reload()
+      }
+      // If already reloaded once, let ErrorBoundary handle it
+      return factory()
+    })
+  )
+}
+
+const OnboardingPage = lazyWithReload(() => import('@/pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })))
+const HomePage = lazyWithReload(() => import('@/pages/HomePage').then(m => ({ default: m.HomePage })))
+const CalendarPage = lazyWithReload(() => import('@/pages/CalendarPage').then(m => ({ default: m.CalendarPage })))
+const RecordPage = lazyWithReload(() => import('@/pages/RecordPage').then(m => ({ default: m.RecordPage })))
+const SettingsPage = lazyWithReload(() => import('@/pages/SettingsPage').then(m => ({ default: m.SettingsPage })))
+const StatsPage = lazyWithReload(() => import('@/pages/StatsPage').then(m => ({ default: m.StatsPage })))
+const InvitePage = lazyWithReload(() => import('@/pages/InvitePage').then(m => ({ default: m.InvitePage })))
+const PartnerPage = lazyWithReload(() => import('@/pages/PartnerPage').then(m => ({ default: m.PartnerPage })))
+const RecommendPage = lazyWithReload(() => import('@/pages/RecommendPage').then(m => ({ default: m.RecommendPage })))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,23 +64,12 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
 function AuthCallback() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
-  const [ready, setReady] = useState(false)
+  const hasNavigated = useRef(false)
 
-  useEffect(() => {
-    // Supabase의 detectSessionInUrl이 PKCE code를 교환할 시간을 확보
-    // onAuthStateChange에서 SIGNED_IN 이벤트가 오면 user가 세팅됨
-    if (!loading && user) {
-      setReady(true)
-    }
-    // 5초 타임아웃 — 실패 시에도 홈으로 이동
-    const timer = setTimeout(() => setReady(true), 5000)
-    return () => clearTimeout(timer)
-  }, [user, loading])
+  const doNavigate = useCallback(() => {
+    if (hasNavigated.current) return
+    hasNavigated.current = true
 
-  useEffect(() => {
-    if (!ready) return
-
-    // 로그인 전 저장된 초대 코드가 있으면 초대 페이지로 리디렉트
     const pendingInvite = sessionStorage.getItem('dalbit-pending-invite')
     if (pendingInvite) {
       sessionStorage.removeItem('dalbit-pending-invite')
@@ -64,18 +77,27 @@ function AuthCallback() {
     } else {
       navigate('/', { replace: true })
     }
-  }, [ready, navigate])
+  }, [navigate])
 
-  if (!ready) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-moon">🌙</div>
-        <p>로그인 중...</p>
-      </div>
-    )
-  }
+  // Auth 상태가 확정되면 즉시 이동
+  useEffect(() => {
+    if (!loading && user) {
+      doNavigate()
+    }
+  }, [user, loading, doNavigate])
 
-  return null
+  // Fallback: PKCE 교환 최대 10초 대기 후 이동 (한 번만 설정)
+  useEffect(() => {
+    const timer = setTimeout(doNavigate, 10000)
+    return () => clearTimeout(timer)
+  }, [doNavigate])
+
+  return (
+    <div className="loading-screen">
+      <div className="loading-moon">🌙</div>
+      <p>로그인 중...</p>
+    </div>
+  )
 }
 
 export default function App() {
@@ -115,6 +137,7 @@ export default function App() {
                   <Route path="/record" element={<RecordPage />} />
                   <Route path="/stats" element={<StatsPage />} />
                   <Route path="/partner" element={<PartnerPage />} />
+                  <Route path="/recommend" element={<RecommendPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />

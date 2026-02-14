@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS periods (
   start_date DATE NOT NULL,
   end_date DATE,
   flow_intensity TEXT CHECK (flow_intensity IN ('spotting', 'light', 'medium', 'heavy')),
+  flow_intensities JSONB DEFAULT '{}', -- per-day: { "2026-02-14": "heavy" }
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, start_date)
@@ -74,6 +75,22 @@ CREATE TABLE IF NOT EXISTS daily_notes (
 );
 
 CREATE INDEX idx_daily_notes_user_date ON daily_notes(user_id, date);
+
+-- 6. Pad Preferences (제품 추천 설문)
+CREATE TABLE IF NOT EXISTS pad_preferences (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL UNIQUE,
+  product_types TEXT[] DEFAULT '{}',
+  brand TEXT,
+  product_name TEXT,
+  sizes TEXT[] DEFAULT '{}',
+  skin_sensitivity TEXT DEFAULT 'normal' CHECK (skin_sensitivity IN ('sensitive', 'normal', 'not_concerned')),
+  priority TEXT DEFAULT 'comfort' CHECK (priority IN ('absorption', 'comfort', 'cotton', 'price', 'eco')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_pad_preferences_user ON pad_preferences(user_id);
 
 -- periods 테이블에 deleted_at 컬럼 추가 (soft delete)
 ALTER TABLE periods ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
@@ -166,6 +183,27 @@ CREATE POLICY "notes_update_own" ON daily_notes
   FOR UPDATE USING (auth.uid() = user_id);
 
 CREATE POLICY "notes_delete_own" ON daily_notes
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Pad Preferences: 본인만 접근 + 파트너 읽기 허용
+ALTER TABLE pad_preferences ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "pad_prefs_select" ON pad_preferences
+  FOR SELECT USING (
+    auth.uid() = user_id
+    OR user_id IN (
+      SELECT owner_id FROM partner_sharing
+      WHERE partner_user_id = auth.uid() AND accepted = true
+    )
+  );
+
+CREATE POLICY "pad_prefs_insert" ON pad_preferences
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "pad_prefs_update" ON pad_preferences
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "pad_prefs_delete" ON pad_preferences
   FOR DELETE USING (auth.uid() = user_id);
 
 -- ============================================

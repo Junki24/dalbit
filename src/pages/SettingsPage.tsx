@@ -67,20 +67,34 @@ export function SettingsPage() {
 
   const handleGenerateInvite = async () => {
     if (!user || !isSupabaseConfigured) return
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase()
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 7)
+    try {
+      // Use crypto for better randomness when available
+      const array = new Uint8Array(6)
+      crypto.getRandomValues(array)
+      const code = Array.from(array, b => b.toString(36).padStart(2, '0')).join('').substring(0, 8).toUpperCase()
 
-    const { error } = await supabase.from('partner_sharing').insert({
-      owner_id: user.id,
-      invite_code: code,
-      invite_expires_at: expiresAt.toISOString(),
-      permission_level: 'read',
-      accepted: false,
-    })
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 7)
 
-    if (!error) {
+      const { error } = await supabase.from('partner_sharing').insert({
+        owner_id: user.id,
+        invite_code: code,
+        invite_expires_at: expiresAt.toISOString(),
+        permission_level: 'read',
+        accepted: false,
+      })
+
+      if (error) {
+        console.error('[달빛] 초대 코드 생성 실패:', error)
+        showToast('초대 코드 생성에 실패했습니다. 다시 시도해주세요.', 'error')
+        return
+      }
+
       setInviteCode(code)
+      showToast('초대 링크가 생성되었습니다!', 'success')
+    } catch (err) {
+      console.error('[달빛] 초대 코드 생성 오류:', err)
+      showToast('오류가 발생했습니다.', 'error')
     }
   }
 
@@ -153,6 +167,7 @@ export function SettingsPage() {
           start_date: p.start_date,
           end_date: p.end_date ?? null,
           flow_intensity: p.flow_intensity ?? null,
+          flow_intensities: (p.flow_intensities as Record<string, string>) ?? {},
           deleted_at: p.deleted_at ?? null,
         }))
         const { error } = await supabase
@@ -203,6 +218,50 @@ export function SettingsPage() {
     await navigator.clipboard.writeText(url)
     setShowCopied(true)
     setTimeout(() => setShowCopied(false), 2000)
+  }
+
+  const handleTestNotification = async () => {
+    try {
+      const reg = await navigator.serviceWorker.ready
+      await reg.showNotification('달빛 테스트 🌙', {
+        body: '알림이 정상적으로 도착했습니다!',
+        icon: '/pwa-192.png',
+        badge: '/pwa-144.png',
+        tag: 'dalbit-test',
+      })
+      showToast('테스트 알림을 보냈습니다!', 'success')
+    } catch {
+      showToast('알림 전송에 실패했습니다.', 'error')
+    }
+  }
+
+  const handleServerPushTest = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        showToast('로그인 세션이 필요합니다.', 'error')
+        return
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-notifications`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+        }
+      )
+      const result = await response.json()
+      if (response.ok) {
+        showToast(`서버 푸시 결과: ${result.sent ?? 0}건 발송`, 'success')
+      } else {
+        showToast(`서버 푸시 실패: ${result.error ?? '알 수 없는 오류'}`, 'error')
+      }
+    } catch {
+      showToast('서버 푸시 테스트 실패', 'error')
+    }
   }
 
   return (
@@ -310,13 +369,31 @@ export function SettingsPage() {
             >
               알림 허용
             </button>
-          )}
-        </div>
-        <p className="settings-hint">
-          매일 저녁 9시에 주기 상태에 맞는 스마트 알림을 받습니다.
-          앱을 닫아도 알림이 도착합니다.
-        </p>
-      </div>
+           )}
+         </div>
+         {permission === 'granted' && userSettings?.notifications_enabled && (
+           <>
+             <button
+               className="btn-export"
+               onClick={handleTestNotification}
+               style={{ marginTop: '8px' }}
+             >
+               🔔 테스트 알림 보내기
+             </button>
+             <button
+               className="btn-export"
+               onClick={handleServerPushTest}
+               style={{ marginTop: '8px' }}
+             >
+               🚀 서버 푸시 테스트
+             </button>
+           </>
+         )}
+         <p className="settings-hint">
+           매일 저녁 9시에 주기 상태에 맞는 스마트 알림을 받습니다.
+           앱을 닫아도 알림이 도착합니다.
+         </p>
+       </div>
 
       {/* Partner Sharing */}
       <div className="settings-section">

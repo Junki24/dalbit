@@ -6,12 +6,14 @@ import { useToast } from '@/contexts/ToastContext'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { useNotes } from '@/hooks/useNotes'
+import { useMedications, useMedicationIntakes } from '@/hooks/useMedications'
 import { useHaptic } from '@/hooks/useHaptic'
-import { isDateInPeriod } from '@/lib/cycle'
+import { isDateInPeriod, getFlowForDate } from '@/lib/cycle'
 import {
   SYMPTOM_LABELS,
   SYMPTOM_ICONS,
   FLOW_LABELS,
+  MEDICATION_TYPE_ICONS,
 } from '@/types'
 import type { SymptomType, FlowIntensity } from '@/types'
 import './RecordPage.css'
@@ -78,23 +80,26 @@ export function RecordPage() {
   const { periods, addPeriod, updatePeriod, deletePeriod } = usePeriods()
   const { symptoms, addSymptom, deleteSymptom, updateSymptom } = useSymptoms(dateStr)
   const { note, saveNote, isSaving: isNoteSaving } = useNotes(dateStr)
+  const { medications } = useMedications()
+  const { intakes, addIntake, deleteIntake } = useMedicationIntakes(dateStr)
 
   const existingPeriod = isDateInPeriod(dateStr, periods)
   const [isPeriodActive, setIsPeriodActive] = useState(Boolean(existingPeriod))
   const [flowIntensity, setFlowIntensity] = useState<FlowIntensity | null>(
-    existingPeriod?.flow_intensity ?? null
+    getFlowForDate(existingPeriod, dateStr)
   )
   const [isEndDateMode, setIsEndDateMode] = useState(false)
   const [notes, setNotes] = useState(note ?? '')
   const [notesSaved, setNotesSaved] = useState(false)
   const [selectedSeveritySymptom, setSelectedSeveritySymptom] = useState<SymptomType | null>(null)
+  const [medInputName, setMedInputName] = useState('')
   const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Reset state when date changes
   useEffect(() => {
     const period = isDateInPeriod(dateStr, periods)
     setIsPeriodActive(Boolean(period))
-    setFlowIntensity(period?.flow_intensity ?? null)
+    setFlowIntensity(getFlowForDate(period, dateStr))
     setIsEndDateMode(false)
     setSelectedSeveritySymptom(null)
   }, [dateStr, periods])
@@ -140,6 +145,7 @@ export function RecordPage() {
       await addPeriod.mutateAsync({
         start_date: dateStr,
         flow_intensity: flowIntensity,
+        flow_intensities: flowIntensity ? { [dateStr]: flowIntensity } : {},
       })
       setIsPeriodActive(true)
       vibrate('success')
@@ -166,9 +172,13 @@ export function RecordPage() {
   const handleFlowChange = async (flow: FlowIntensity) => {
     setFlowIntensity(flow)
     if (existingPeriod) {
+      const updatedMap = {
+        ...(existingPeriod.flow_intensities ?? {}),
+        [dateStr]: flow,
+      }
       await updatePeriod.mutateAsync({
         id: existingPeriod.id,
-        flow_intensity: flow,
+        flow_intensities: updatedMap,
       })
     }
   }
@@ -374,6 +384,90 @@ export function RecordPage() {
           onChange={(e) => handleNotesChange(e.target.value)}
           rows={3}
         />
+      </div>
+
+      {/* Medications */}
+      <div className="record-section">
+        <h3 className="section-title">💊 복용 기록</h3>
+
+        {/* Quick-add from registered medications */}
+        {medications.length > 0 && (
+          <div className="med-quick-list">
+            {medications.map((med) => (
+              <button
+                key={med.id}
+                className="med-quick-btn"
+                onClick={async () => {
+                  await addIntake.mutateAsync({
+                    medication_id: med.id,
+                    medication_name: med.name,
+                  })
+                  vibrate('light')
+                }}
+              >
+                {MEDICATION_TYPE_ICONS[med.type]} {med.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Manual entry */}
+        <div className="med-manual-form">
+          <input
+            className="med-manual-input"
+            type="text"
+            placeholder="약 이름 입력..."
+            value={medInputName}
+            onChange={(e) => setMedInputName(e.target.value)}
+            onKeyDown={async (e) => {
+              if (e.key === 'Enter' && medInputName.trim()) {
+                await addIntake.mutateAsync({ medication_name: medInputName.trim() })
+                setMedInputName('')
+                vibrate('light')
+              }
+            }}
+          />
+          <button
+            className="med-manual-submit"
+            disabled={!medInputName.trim()}
+            onClick={async () => {
+              if (!medInputName.trim()) return
+              await addIntake.mutateAsync({ medication_name: medInputName.trim() })
+              setMedInputName('')
+              vibrate('light')
+            }}
+          >
+            복용
+          </button>
+        </div>
+
+        {/* Intake list */}
+        {intakes.length > 0 ? (
+          <div className="med-intake-list">
+            {intakes.map((intake) => (
+              <div key={intake.id} className="med-intake-item">
+                <span className="med-intake-name">{intake.medication_name}</span>
+                <span className="med-intake-time">
+                  {format(new Date(intake.taken_at), 'HH:mm')}
+                </span>
+                {intake.dosage && (
+                  <span className="med-intake-dosage">{intake.dosage}</span>
+                )}
+                <button
+                  className="med-intake-delete"
+                  onClick={async () => {
+                    await deleteIntake.mutateAsync(intake.id)
+                    vibrate('light')
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="med-empty">아직 복용 기록이 없어요</p>
+        )}
       </div>
     </div>
   )

@@ -30,10 +30,12 @@ export function usePeriods() {
       start_date,
       end_date,
       flow_intensity,
+      flow_intensities,
     }: {
       start_date: string
       end_date?: string | null
       flow_intensity?: FlowIntensity | null
+      flow_intensities?: Record<string, FlowIntensity>
     }) => {
       if (!user) throw new Error('로그인이 필요합니다')
       const { data, error } = await supabase
@@ -43,6 +45,7 @@ export function usePeriods() {
           start_date,
           end_date: end_date ?? null,
           flow_intensity: flow_intensity ?? null,
+          flow_intensities: flow_intensities ?? {},
         })
         .select()
         .single()

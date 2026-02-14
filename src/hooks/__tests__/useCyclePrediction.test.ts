@@ -10,6 +10,7 @@ function makePeriod(startDate: string, endDate?: string | null): Period {
     start_date: startDate,
     end_date: endDate ?? null,
     flow_intensity: null,
+    flow_intensities: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     deleted_at: null,
