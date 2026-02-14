@@ -1,9 +1,13 @@
-import { differenceInDays, format } from 'date-fns'
+import { differenceInDays, format, parseISO } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { useQuery } from '@tanstack/react-query'
 import { usePartnerData } from '@/hooks/usePartnerData'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 import './PartnerPage.css'
 
 export function PartnerPage() {
+  const { user } = useAuth()
   const { isLinked, isLoading, partnerName, partnerData } = usePartnerData()
 
   if (isLoading) {
@@ -30,6 +34,30 @@ export function PartnerPage() {
   const daysUntilNextPeriod = prediction
     ? differenceInDays(prediction.nextPeriodDate, new Date())
     : null
+
+  // Get partner's intimacy records for current cycle
+  const partnerPeriods = partnerData.periods
+  const lastPeriodStart = partnerPeriods.length > 0
+    ? [...partnerPeriods].sort((a, b) => parseISO(b.start_date).getTime() - parseISO(a.start_date).getTime())[0].start_date
+    : null
+
+  const { data: partnerIntimacyCount = 0 } = useQuery({
+    queryKey: ['partner-intimacy', user?.id, lastPeriodStart],
+    queryFn: async (): Promise<number> => {
+      if (!user || !isSupabaseConfigured || !lastPeriodStart) return 0
+      const ownerId = partnerPeriods[0]?.user_id
+      if (!ownerId) return 0
+      const { count, error } = await supabase
+        .from('intimacy_records')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', ownerId)
+        .gte('date', lastPeriodStart)
+      if (error) return 0
+      return count ?? 0
+    },
+    enabled: Boolean(user) && isSupabaseConfigured && Boolean(lastPeriodStart) && isLinked,
+    staleTime: 5 * 60 * 1000,
+  })
 
   return (
     <div className="partner-page">
@@ -125,9 +153,20 @@ export function PartnerPage() {
         </div>
       </div>
 
+      {/* Intimacy in current cycle */}
+      {lastPeriodStart && (
+        <div className="partner-pred-card" style={{ marginTop: 8 }}>
+          <span className="partner-pred-icon">💜</span>
+          <span className="partner-pred-label">이번 주기 관계</span>
+          <span className="partner-pred-value">
+            {partnerIntimacyCount > 0 ? `${partnerIntimacyCount}회 기록됨` : '기록 없음'}
+          </span>
+        </div>
+      )}
+
       {/* Privacy Notice */}
       <div className="partner-privacy">
-        <p>🔒 상세 증상 기록이나 메모는 공유되지 않습니다.</p>
+        <p>🔒 상세 증상 기록이나 메모는 공유되지 않습니다. 관계 기록의 메모도 표시되지 않습니다.</p>
       </div>
     </div>
   )

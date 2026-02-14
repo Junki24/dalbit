@@ -15,6 +15,7 @@ import { ko } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
+import { useIntimacy } from '@/hooks/useIntimacy'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
 import { useAppStore } from '@/lib/store'
 import { CalendarPageSkeleton } from '@/components/Skeleton'
@@ -58,6 +59,7 @@ const CalendarDayCell = memo(function CalendarDayCell({
   if (day.isFertile) statusParts.push('가임기')
   if (day.isOvulation) statusParts.push('배란일')
   if (day.symptoms.length > 0) statusParts.push(`증상 ${day.symptoms.length}개`)
+  if (day.hasIntimacy) statusParts.push('관계')
   const ariaLabel = statusParts.length > 0
     ? `${dayLabel}, ${statusParts.join(', ')}`
     : dayLabel
@@ -76,6 +78,9 @@ const CalendarDayCell = memo(function CalendarDayCell({
       {day.symptoms.length > 0 && (
         <span className="calendar-day-dot" aria-hidden="true" />
       )}
+      {day.hasIntimacy && (
+        <span className="calendar-day-dot calendar-day-dot--intimacy" aria-hidden="true" />
+      )}
     </button>
   )
 })
@@ -86,6 +91,7 @@ export function CalendarPage() {
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
   const { periods, isLoading } = usePeriods()
   const { symptoms } = useSymptoms()
+  const { records: intimacyRecords } = useIntimacy()
   const { prediction } = useCyclePrediction(periods)
   const setSelectedDate = useAppStore((s) => s.setSelectedDate)
 
@@ -118,9 +124,10 @@ export function CalendarPage() {
         isCurrentMonth: isSameMonth(date, currentMonth),
         symptoms: daySymptoms,
         flowIntensity: getFlowForDate(period, dateStr),
+        hasIntimacy: intimacyRecords.some((r) => r.date === dateStr),
       }
     })
-  }, [currentMonth, periods, symptoms, prediction])
+  }, [currentMonth, periods, symptoms, prediction, intimacyRecords])
 
   const handleDayClick = (day: CalendarDay) => {
     setSelectedDay(selectedDay?.dateStr === day.dateStr ? null : day)
@@ -178,6 +185,10 @@ export function CalendarPage() {
           <span className="legend-dot legend-dot--ovulation" />
           배란일
         </span>
+        <span className="legend-item">
+          <span className="legend-dot legend-dot--intimacy" />
+          관계
+        </span>
       </div>
 
       {/* Weekday Headers + Calendar Grid */}
@@ -223,6 +234,9 @@ export function CalendarPage() {
             )}
             {selectedDay.isFertile && !selectedDay.isOvulation && (
               <span className="day-tag day-tag--fertile">💫 가임기</span>
+            )}
+            {selectedDay.hasIntimacy && (
+              <span className="day-tag day-tag--intimacy">💜 관계</span>
             )}
           </div>
 

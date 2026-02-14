@@ -7,16 +7,21 @@ import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { useNotes } from '@/hooks/useNotes'
 import { useMedications, useMedicationIntakes } from '@/hooks/useMedications'
+import { useIntimacy } from '@/hooks/useIntimacy'
+import { useCyclePrediction } from '@/hooks/useCyclePrediction'
 import { useHaptic } from '@/hooks/useHaptic'
-import { isDateInPeriod, getFlowForDate } from '@/lib/cycle'
+import { isDateInPeriod, getFlowForDate, isDateInFertileWindow, isOvulationDay } from '@/lib/cycle'
 import {
   SYMPTOM_LABELS,
   SYMPTOM_ICONS,
   FLOW_LABELS,
   MEDICATION_TYPE_ICONS,
   MEDICATION_TYPE_LABELS,
+  TIME_OF_DAY_LABELS,
+  TIME_OF_DAY_ICONS,
+  PROTECTION_METHOD_LABELS,
 } from '@/types'
-import type { SymptomType, FlowIntensity, MedicationType } from '@/types'
+import type { SymptomType, FlowIntensity, MedicationType, TimeOfDay, ProtectionMethod } from '@/types'
 import './RecordPage.css'
 
 const ALL_SYMPTOMS: SymptomType[] = [
@@ -85,6 +90,17 @@ export function RecordPage() {
   const { note, saveNote, isSaving: isNoteSaving } = useNotes(dateStr)
   const { medications, addMedication, deleteMedication } = useMedications()
   const { intakes, addIntake, deleteIntake } = useMedicationIntakes(dateStr)
+  const { records: intimacyRecords, addRecord: addIntimacy, deleteRecord: deleteIntimacy } = useIntimacy(dateStr)
+  const { prediction } = useCyclePrediction(periods)
+
+  const [showIntimacyForm, setShowIntimacyForm] = useState(false)
+  const [intimacyTimeOfDay, setIntimacyTimeOfDay] = useState<TimeOfDay | null>(null)
+  const [intimacyProtection, setIntimacyProtection] = useState<boolean | null>(null)
+  const [intimacyProtectionMethod, setIntimacyProtectionMethod] = useState<ProtectionMethod | null>(null)
+  const [intimacyNote, setIntimacyNote] = useState('')
+
+  const isFertileToday = isDateInFertileWindow(selectedDate, prediction)
+  const isOvulationToday = isOvulationDay(selectedDate, prediction)
 
   const existingPeriod = isDateInPeriod(dateStr, periods)
   const [isPeriodActive, setIsPeriodActive] = useState(Boolean(existingPeriod))
@@ -327,6 +343,48 @@ export function RecordPage() {
       showToast('삭제에 실패했습니다', 'error')
     }
   }
+
+  // ── Intimacy handlers ──
+
+  const handleAddIntimacy = async () => {
+    try {
+      await addIntimacy.mutateAsync({
+        date: dateStr,
+        time_of_day: intimacyTimeOfDay,
+        protection_used: intimacyProtection,
+        protection_method: intimacyProtection ? intimacyProtectionMethod : null,
+        note: intimacyNote.trim() || null,
+      })
+      setShowIntimacyForm(false)
+      setIntimacyTimeOfDay(null)
+      setIntimacyProtection(null)
+      setIntimacyProtectionMethod(null)
+      setIntimacyNote('')
+      showToast('기록되었습니다', 'success')
+      vibrate('success')
+    } catch {
+      showToast('기록에 실패했습니다', 'error')
+    }
+  }
+
+  const handleDeleteIntimacy = async (id: string) => {
+    const confirmed = await confirm({
+      title: '기록 삭제',
+      message: '이 관계 기록을 삭제하시겠습니까?',
+      confirmText: '삭제',
+      cancelText: '취소',
+    })
+    if (!confirmed) return
+    try {
+      await deleteIntimacy.mutateAsync(id)
+      vibrate('medium')
+    } catch {
+      showToast('삭제에 실패했습니다', 'error')
+    }
+  }
+
+  const ALL_TIMES: TimeOfDay[] = ['morning', 'afternoon', 'evening', 'night']
+  const ALL_METHODS: ProtectionMethod[] = ['condom', 'pill', 'iud', 'other']
 
   return (
     <div className="record-page">
@@ -656,6 +714,140 @@ export function RecordPage() {
           </div>
         ) : (
           <p className="med-empty">아직 복용 기록이 없어요</p>
+        )}
+      </div>
+
+      {/* Intimacy */}
+      <div className="record-section">
+        <h3 className="section-title">
+          💜 관계 기록
+          {intimacyRecords.length > 0 && (
+            <span className="intimacy-count-badge">{intimacyRecords.length}</span>
+          )}
+        </h3>
+
+        {/* Fertile window info */}
+        {(isFertileToday || isOvulationToday) && (
+          <div className="intimacy-fertile-info">
+            {isOvulationToday
+              ? '오늘은 배란 예정일이에요. 참고해 주세요.'
+              : '현재 가임기입니다. 참고해 주세요.'}
+          </div>
+        )}
+
+        {/* Existing records */}
+        {intimacyRecords.length > 0 && (
+          <div className="intimacy-records-list">
+            {intimacyRecords.map((rec) => (
+              <div key={rec.id} className="intimacy-record-item">
+                <span className="intimacy-record-info">
+                  {rec.time_of_day && (
+                    <span className="intimacy-record-time">
+                      {TIME_OF_DAY_ICONS[rec.time_of_day]} {TIME_OF_DAY_LABELS[rec.time_of_day]}
+                    </span>
+                  )}
+                  {rec.protection_used !== null && (
+                    <span className="intimacy-record-protection">
+                      {rec.protection_used
+                        ? `🛡️ ${rec.protection_method ? PROTECTION_METHOD_LABELS[rec.protection_method] : '피임'}`
+                        : '피임 안 함'}
+                    </span>
+                  )}
+                  {rec.note && <span className="intimacy-record-note">{rec.note}</span>}
+                </span>
+                <button
+                  className="med-intake-delete"
+                  onClick={() => handleDeleteIntimacy(rec.id)}
+                  aria-label="관계 기록 삭제"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add form */}
+        {showIntimacyForm ? (
+          <div className="intimacy-form">
+            <div className="med-register-header">
+              <span className="intimacy-form-title">기록 추가</span>
+              <button className="severity-close" onClick={() => setShowIntimacyForm(false)}>✕</button>
+            </div>
+
+            <div className="intimacy-field">
+              <span className="intimacy-field-label">시간대 (선택)</span>
+              <div className="intimacy-time-chips">
+                {ALL_TIMES.map((t) => (
+                  <button
+                    key={t}
+                    className={`intimacy-time-chip ${intimacyTimeOfDay === t ? 'intimacy-time-chip--active' : ''}`}
+                    onClick={() => setIntimacyTimeOfDay(intimacyTimeOfDay === t ? null : t)}
+                  >
+                    {TIME_OF_DAY_ICONS[t]} {TIME_OF_DAY_LABELS[t]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="intimacy-field">
+              <span className="intimacy-field-label">피임 여부</span>
+              <div className="intimacy-protection-btns">
+                <button
+                  className={`intimacy-protection-btn ${intimacyProtection === true ? 'intimacy-protection-btn--active' : ''}`}
+                  onClick={() => setIntimacyProtection(intimacyProtection === true ? null : true)}
+                >
+                  사용함
+                </button>
+                <button
+                  className={`intimacy-protection-btn ${intimacyProtection === false ? 'intimacy-protection-btn--active intimacy-protection-btn--no' : ''}`}
+                  onClick={() => setIntimacyProtection(intimacyProtection === false ? null : false)}
+                >
+                  안 함
+                </button>
+              </div>
+            </div>
+
+            {intimacyProtection === true && (
+              <div className="intimacy-field">
+                <span className="intimacy-field-label">피임 방법</span>
+                <div className="intimacy-method-chips">
+                  {ALL_METHODS.map((m) => (
+                    <button
+                      key={m}
+                      className={`intimacy-time-chip ${intimacyProtectionMethod === m ? 'intimacy-time-chip--active' : ''}`}
+                      onClick={() => setIntimacyProtectionMethod(intimacyProtectionMethod === m ? null : m)}
+                    >
+                      {PROTECTION_METHOD_LABELS[m]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <input
+              className="intimacy-note-input"
+              type="text"
+              placeholder="메모 (선택)"
+              value={intimacyNote}
+              onChange={(e) => setIntimacyNote(e.target.value)}
+            />
+
+            <button
+              className="intimacy-save-btn"
+              disabled={addIntimacy.isPending}
+              onClick={handleAddIntimacy}
+            >
+              {addIntimacy.isPending ? '저장 중...' : '저장'}
+            </button>
+          </div>
+        ) : (
+          <button
+            className="intimacy-add-btn"
+            onClick={() => setShowIntimacyForm(true)}
+          >
+            + 관계 기록 추가
+          </button>
         )}
       </div>
     </div>

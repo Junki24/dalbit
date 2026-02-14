@@ -341,3 +341,23 @@
   background: rgba(124, 58, 237, 0.2);
   transform: scale(0.98);
 }
+
+/* Intimacy */
+.calendar-day-dot--intimacy {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #a855f7;
+  box-shadow: 0 0 4px rgba(168, 85, 247, 0.5);
+}
+
+.legend-dot--intimacy {
+  background: #a855f7;
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.4);
+}
+
+.day-tag--intimacy {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.1);
+}

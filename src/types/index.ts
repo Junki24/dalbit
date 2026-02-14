@@ -84,6 +84,7 @@ export interface CalendarDay {
   isCurrentMonth: boolean
   symptoms: Symptom[]
   flowIntensity: FlowIntensity | null
+  hasIntimacy: boolean
 }
 
 // Pad Preferences (제품 추천 설문)
@@ -322,4 +323,41 @@ export const FLOW_COLORS: Record<FlowIntensity, string> = {
   light: '#fb7185',
   medium: '#f43f5e',
   heavy: '#e11d48',
+}
+
+// Intimacy (관계 기록)
+export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night'
+export type ProtectionMethod = 'condom' | 'pill' | 'iud' | 'other'
+
+export interface IntimacyRecord {
+  id: string
+  user_id: string
+  date: string // YYYY-MM-DD
+  time_of_day: TimeOfDay | null
+  protection_used: boolean | null
+  protection_method: ProtectionMethod | null
+  note: string | null
+  created_at: string
+  updated_at: string
+}
+
+export const TIME_OF_DAY_LABELS: Record<TimeOfDay, string> = {
+  morning: '아침',
+  afternoon: '낮',
+  evening: '저녁',
+  night: '밤',
+}
+
+export const TIME_OF_DAY_ICONS: Record<TimeOfDay, string> = {
+  morning: '🌅',
+  afternoon: '☀️',
+  evening: '🌇',
+  night: '🌙',
+}
+
+export const PROTECTION_METHOD_LABELS: Record<ProtectionMethod, string> = {
+  condom: '콘돔',
+  pill: '경구피임약',
+  iud: 'IUD/루프',
+  other: '기타',
 }

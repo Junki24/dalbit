@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react'
-import { format, parseISO, differenceInDays } from 'date-fns'
+import { format, parseISO, differenceInDays, startOfMonth, endOfMonth } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { useSymptomPatterns } from '@/hooks/useSymptomPatterns'
 import { useMedicationIntakes } from '@/hooks/useMedications'
+import { useIntimacy } from '@/hooks/useIntimacy'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
+import { isDateInFertileWindow } from '@/lib/cycle'
 import { generatePdfReport } from '@/lib/pdf-export'
-import { SYMPTOM_LABELS, SYMPTOM_ICONS } from '@/types'
-import type { SymptomType, CyclePhase, Period } from '@/types'
+import { SYMPTOM_LABELS, SYMPTOM_ICONS, PROTECTION_METHOD_LABELS, TIME_OF_DAY_LABELS } from '@/types'
+import type { SymptomType, CyclePhase, Period, ProtectionMethod, TimeOfDay } from '@/types'
 import './StatsPage.css'
 
 interface CycleHistory {
@@ -35,6 +37,91 @@ export function StatsPage() {
   const { prediction } = useCyclePrediction(periods)
   const avgCycleLength = prediction?.averageCycleLength ?? userSettings?.average_cycle_length ?? 28
   const symptomPatterns = useSymptomPatterns(periods, symptoms, avgCycleLength)
+  const { records: intimacyRecords } = useIntimacy()
+
+  // ── Intimacy stats ──
+  const intimacyMonthly = useMemo(() => {
+    const months = new Map<string, number>()
+    for (const r of intimacyRecords) {
+      const month = r.date.substring(0, 7)
+      months.set(month, (months.get(month) ?? 0) + 1)
+    }
+    return [...months.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(-6)
+      .map(([month, count]) => ({
+        month: format(parseISO(month + '-01'), 'M월', { locale: ko }),
+        count,
+      }))
+  }, [intimacyRecords])
+
+  const intimacyCyclePhase = useMemo(() => {
+    if (periods.length === 0 || intimacyRecords.length === 0) return []
+    const sorted = [...periods].sort(
+      (a, b) => parseISO(b.start_date).getTime() - parseISO(a.start_date).getTime()
+    )
+    const phaseCounts: Record<CyclePhase, number> = { menstrual: 0, follicular: 0, ovulation: 0, luteal: 0 }
+    const ovulationDay = avgCycleLength - 14
+
+    for (const rec of intimacyRecords) {
+      const recDate = parseISO(rec.date)
+      // Find most recent period start before this record
+      const prevPeriod = sorted.find((p) => parseISO(p.start_date) <= recDate)
+      if (!prevPeriod) continue
+      const cycleDay = differenceInDays(recDate, parseISO(prevPeriod.start_date)) + 1
+      if (cycleDay <= 5) phaseCounts.menstrual++
+      else if (cycleDay <= ovulationDay - 5) phaseCounts.follicular++
+      else if (cycleDay <= ovulationDay + 1) phaseCounts.ovulation++
+      else phaseCounts.luteal++
+    }
+
+    const total = Object.values(phaseCounts).reduce((a, b) => a + b, 0)
+    return (['menstrual', 'follicular', 'ovulation', 'luteal'] as CyclePhase[])
+      .map((phase) => ({
+        phase,
+        count: phaseCounts[phase],
+        pct: total > 0 ? Math.round((phaseCounts[phase] / total) * 100) : 0,
+      }))
+      .filter((p) => p.count > 0)
+  }, [intimacyRecords, periods, avgCycleLength])
+
+  const intimacyProtectionStats = useMemo(() => {
+    const total = intimacyRecords.length
+    const protectedCount = intimacyRecords.filter((r) => r.protection_used === true).length
+    const unprotectedCount = intimacyRecords.filter((r) => r.protection_used === false).length
+    const byMethod = new Map<ProtectionMethod, number>()
+    for (const r of intimacyRecords) {
+      if (r.protection_used && r.protection_method) {
+        byMethod.set(r.protection_method, (byMethod.get(r.protection_method) ?? 0) + 1)
+      }
+    }
+    return {
+      total,
+      protectedCount,
+      unprotectedCount,
+      rate: total > 0 ? Math.round((protectedCount / total) * 100) : 0,
+      byMethod: [...byMethod.entries()].sort((a, b) => b[1] - a[1]),
+    }
+  }, [intimacyRecords])
+
+  const intimacyFertileOverlap = useMemo(() => {
+    if (!prediction || intimacyRecords.length === 0) return { total: 0, duringFertile: 0, pct: 0 }
+    const duringFertile = intimacyRecords.filter((r) =>
+      isDateInFertileWindow(parseISO(r.date), prediction)
+    ).length
+    return {
+      total: intimacyRecords.length,
+      duringFertile,
+      pct: intimacyRecords.length > 0 ? Math.round((duringFertile / intimacyRecords.length) * 100) : 0,
+    }
+  }, [intimacyRecords, prediction])
+
+  const currentMonthIntimacy = useMemo(() => {
+    const now = new Date()
+    const monthStart = format(startOfMonth(now), 'yyyy-MM-dd')
+    const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd')
+    return intimacyRecords.filter((r) => r.date >= monthStart && r.date <= monthEnd).length
+  }, [intimacyRecords])
 
   // Calculate cycle history
   const cycleHistory = useMemo((): CycleHistory[] => {
@@ -202,6 +289,21 @@ export function StatsPage() {
         s.severity.toString(),
         (s.notes ?? '').replace(/,/g, ' '),
       ].join(','))
+    }
+
+    if (intimacyRecords.length > 0) {
+      rows.push('')
+      rows.push('=== 관계 기록 ===')
+      rows.push('날짜,시간대,피임여부,피임방법,메모')
+      for (const r of intimacyRecords) {
+        rows.push([
+          r.date,
+          r.time_of_day ? TIME_OF_DAY_LABELS[r.time_of_day as TimeOfDay] : '',
+          r.protection_used === true ? '사용' : r.protection_used === false ? '미사용' : '',
+          r.protection_method ? PROTECTION_METHOD_LABELS[r.protection_method as ProtectionMethod] : '',
+          (r.note ?? '').replace(/,/g, ' '),
+        ].join(','))
+      }
     }
 
     const bom = '\uFEFF' // UTF-8 BOM for Excel compatibility
@@ -413,6 +515,86 @@ export function StatsPage() {
             </div>
           )}
 
+          {/* Intimacy Stats */}
+          {intimacyRecords.length > 0 && (
+            <div className="stats-section">
+              <h3 className="stats-section-title">💜 관계 분석</h3>
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <span className="stat-value">{currentMonthIntimacy}회</span>
+                  <span className="stat-label">이번 달</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-value">{intimacyFertileOverlap.duringFertile}회</span>
+                  <span className="stat-label">가임기 중 ({intimacyFertileOverlap.pct}%)</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-value">{intimacyProtectionStats.rate}%</span>
+                  <span className="stat-label">피임 사용률</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-value">{intimacyRecords.length}회</span>
+                  <span className="stat-label">전체 기록</span>
+                </div>
+              </div>
+
+              {/* Monthly trend */}
+              {intimacyMonthly.length > 1 && (
+                <>
+                  <h4 className="intimacy-sub-title">월별 추이</h4>
+                  <div className="trend-chart">
+                    {intimacyMonthly.map((m) => {
+                      const maxCount = Math.max(...intimacyMonthly.map((x) => x.count))
+                      const height = maxCount > 0 ? (m.count / maxCount) * 100 : 0
+                      return (
+                        <div key={m.month} className="trend-bar-wrapper">
+                          <span className="trend-count">{m.count}</span>
+                          <div className="trend-bar trend-bar--intimacy" style={{ height: `${Math.max(4, height)}%` }} />
+                          <span className="trend-month">{m.month}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+
+              {/* Cycle phase distribution */}
+              {intimacyCyclePhase.length > 0 && (
+                <>
+                  <h4 className="intimacy-sub-title">주기별 분포</h4>
+                  <div className="intimacy-phase-list">
+                    {intimacyCyclePhase.map((p) => (
+                      <div key={p.phase} className="intimacy-phase-item">
+                        <span className={`pattern-phase-badge pattern-phase--${p.phase}`}>
+                          {PHASE_LABELS[p.phase]}
+                        </span>
+                        <div className="intimacy-phase-bar-bg">
+                          <div className="intimacy-phase-bar-fill" style={{ width: `${p.pct}%` }} />
+                        </div>
+                        <span className="intimacy-phase-stat">{p.count}회 ({p.pct}%)</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Protection method breakdown */}
+              {intimacyProtectionStats.byMethod.length > 0 && (
+                <>
+                  <h4 className="intimacy-sub-title">피임 방법</h4>
+                  <div className="intimacy-method-list">
+                    {intimacyProtectionStats.byMethod.map(([method, count]) => (
+                      <div key={method} className="intimacy-method-item">
+                        <span className="intimacy-method-name">{PROTECTION_METHOD_LABELS[method]}</span>
+                        <span className="intimacy-method-count">{count}회</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {/* Cycle History — Full List */}
           <div className="stats-section">
             <div className="stats-section-header">
@@ -461,7 +643,7 @@ export function StatsPage() {
             </button>
             <button
               className="btn-csv-export"
-              onClick={() => generatePdfReport({ periods, symptoms, userSettings, medicationIntakes })}
+              onClick={() => generatePdfReport({ periods, symptoms, userSettings, medicationIntakes, intimacyRecords })}
             >
               🖨️ PDF 리포트
             </button>

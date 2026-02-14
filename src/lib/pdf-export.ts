@@ -1,20 +1,21 @@
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { SYMPTOM_LABELS } from '@/types'
-import type { Period, Symptom, SymptomType, UserSettings, MedicationIntake } from '@/types'
+import { SYMPTOM_LABELS, PROTECTION_METHOD_LABELS } from '@/types'
+import type { Period, Symptom, SymptomType, UserSettings, MedicationIntake, IntimacyRecord, ProtectionMethod } from '@/types'
 
 interface ExportData {
   periods: Period[]
   symptoms: Symptom[]
   userSettings: UserSettings | null
   medicationIntakes?: MedicationIntake[]
+  intimacyRecords?: IntimacyRecord[]
 }
 
 /**
  * Lazy-load @react-pdf/renderer and generate a downloadable PDF.
  * The library is ~600KB, so we dynamic-import to keep the initial bundle small.
  */
-export async function generatePdfReport({ periods, symptoms, userSettings, medicationIntakes = [] }: ExportData) {
+export async function generatePdfReport({ periods, symptoms, userSettings, medicationIntakes = [], intimacyRecords = [] }: ExportData) {
   const [reactPdf, React] = await Promise.all([
     import('@react-pdf/renderer'),
     import('react'),
@@ -321,6 +322,61 @@ export async function generatePdfReport({ periods, symptoms, userSettings, medic
                     )
                   )
                 )
+            })(),
+          ]
+        : []),
+
+      // Intimacy Summary
+      ...(intimacyRecords.length > 0
+        ? [
+            h(Text, { style: styles.sectionTitle, key: 'intimacy-title' }, '관계 기록'),
+            ...(() => {
+              const total = intimacyRecords.length
+              const protectedCount = intimacyRecords.filter((r) => r.protection_used === true).length
+              const protectionRate = total > 0 ? Math.round((protectedCount / total) * 100) : 0
+
+              // Monthly breakdown
+              const byMonth = new Map<string, number>()
+              for (const r of intimacyRecords) {
+                const m = r.date.substring(0, 7)
+                byMonth.set(m, (byMonth.get(m) ?? 0) + 1)
+              }
+              const monthEntries = [...byMonth.entries()]
+                .sort((a, b) => b[0].localeCompare(a[0]))
+                .slice(0, 6)
+
+              // Method breakdown
+              const byMethod = new Map<ProtectionMethod, number>()
+              for (const r of intimacyRecords) {
+                if (r.protection_used && r.protection_method) {
+                  byMethod.set(r.protection_method, (byMethod.get(r.protection_method) ?? 0) + 1)
+                }
+              }
+
+              return [
+                h(View, { key: 'int-stats', style: styles.statsGrid },
+                  h(View, { style: styles.statBox },
+                    h(Text, { style: styles.statValue }, String(total)),
+                    h(Text, { style: styles.statLabel }, '총 기록')
+                  ),
+                  h(View, { style: styles.statBox },
+                    h(Text, { style: styles.statValue }, `${protectionRate}%`),
+                    h(Text, { style: styles.statLabel }, '피임 사용률')
+                  ),
+                  ...(byMethod.size > 0
+                    ? [h(View, { style: styles.statBox },
+                        h(Text, { style: styles.statValue }, [...byMethod.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ? PROTECTION_METHOD_LABELS[[...byMethod.entries()].sort((a, b) => b[1] - a[1])[0][0]] : '-'),
+                        h(Text, { style: styles.statLabel }, '주요 피임 방법')
+                      )]
+                    : [])
+                ),
+                ...monthEntries.map(([month, count]) =>
+                  h(View, { key: `int-${month}`, style: styles.symptomRow },
+                    h(Text, { style: styles.symptomName }, format(parseISO(month + '-01'), 'yyyy년 M월', { locale: ko })),
+                    h(Text, { style: styles.symptomCount }, `${count}회`)
+                  )
+                ),
+              ]
             })(),
           ]
         : []),
