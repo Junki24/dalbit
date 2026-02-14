@@ -2,6 +2,7 @@ import { render, type RenderOptions } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { ToastProvider } from '@/contexts/ToastContext'
 import type { ReactNode } from 'react'
 
 function createTestQueryClient() {
@@ -27,9 +28,11 @@ function createWrapper(options: TestWrapperOptions = {}) {
   return function Wrapper({ children }: { children: ReactNode }) {
     const content = (
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={initialEntries}>
-          {children}
-        </MemoryRouter>
+        <ToastProvider>
+          <MemoryRouter initialEntries={initialEntries}>
+            {children}
+          </MemoryRouter>
+        </ToastProvider>
       </QueryClientProvider>
     )
 
@@ -37,9 +40,11 @@ function createWrapper(options: TestWrapperOptions = {}) {
       return (
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <MemoryRouter initialEntries={initialEntries}>
-              {children}
-            </MemoryRouter>
+            <ToastProvider>
+              <MemoryRouter initialEntries={initialEntries}>
+                {children}
+              </MemoryRouter>
+            </ToastProvider>
           </AuthProvider>
         </QueryClientProvider>
       )

@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = useCallback(async () => {
     if (!isSupabaseConfigured) {
-      alert('Supabase 설정이 필요합니다. .env 파일을 확인하세요.')
+      console.error('Supabase 설정이 필요합니다. .env 파일을 확인하세요.')
       return
     }
     const { error } = await supabase.auth.signInWithOAuth({
