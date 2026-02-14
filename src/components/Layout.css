@@ -1,9 +1,10 @@
 .layout {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  height: 100dvh;
   max-width: 480px;
   margin: 0 auto;
+  overflow: hidden;
 }
 
 .header {

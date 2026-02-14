@@ -95,6 +95,55 @@
   background: rgba(241, 245, 249, 0.7);
 }
 
+/* Record Page light overrides */
+[data-theme="light"] .flow-btn,
+[data-theme="light"] .severity-dot,
+[data-theme="light"] .end-date-btn,
+[data-theme="light"] .end-date-clear-btn {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.3);
+}
+
+[data-theme="light"] .severity-panel {
+  background: rgba(241, 245, 249, 0.9);
+  border-color: rgba(124, 58, 237, 0.2);
+}
+
+/* Stats Page light overrides */
+[data-theme="light"] .confidence-bar,
+[data-theme="light"] .severity-bar-bg {
+  background: rgba(203, 213, 225, 0.4);
+}
+
+[data-theme="light"] .btn-csv-export {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.4);
+}
+
+/* Settings Page light overrides */
+[data-theme="light"] .compact-number-input button {
+  background: rgba(241, 245, 249, 0.8);
+}
+
+[data-theme="light"] .btn-export {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.4);
+}
+
+[data-theme="light"] .theme-toggle-track {
+  background: rgba(203, 213, 225, 0.6);
+}
+
+[data-theme="light"] .invite-code {
+  background: rgba(241, 245, 249, 0.8);
+}
+
+/* Invite Page light overrides */
+[data-theme="light"] .invite-permissions {
+  background: rgba(241, 245, 249, 0.7);
+  border-color: rgba(203, 213, 225, 0.3);
+}
+
 *,
 *::before,
 *::after {

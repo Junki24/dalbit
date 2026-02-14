@@ -39,20 +39,24 @@ export function useNotifications() {
     }
   }, [])
 
+  const lastNotifiedDateRef = useRef<string | null>(null)
+
   const scheduleReminder = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
 
-    // Check daily at the same time — every 6 hours when app is active
+    // Check every hour — send reminder once per day at 9 PM
     intervalRef.current = setInterval(() => {
       const now = new Date()
       const hour = now.getHours()
+      const today = now.toISOString().slice(0, 10)
 
-      // Send reminder at 9 PM (21:00) if user hasn't recorded today
-      if (hour === 21) {
+      // Send reminder at 9 PM (21:00) — once per day only
+      if (hour === 21 && lastNotifiedDateRef.current !== today) {
         sendNotification(
           '달빛 기록 리마인더',
           '오늘의 증상과 컨디션을 기록해보세요 🌙'
         )
+        lastNotifiedDateRef.current = today
       }
     }, 60 * 60 * 1000) // Check every hour
   }, [sendNotification])

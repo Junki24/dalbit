@@ -44,7 +44,8 @@ export function usePartnerData() {
   const { data: partnerData, isLoading } = useQuery({
     queryKey: ['partner-data', partnerLink?.owner_id],
     queryFn: async (): Promise<PartnerData> => {
-      const ownerId = partnerLink!.owner_id
+      if (!partnerLink) throw new Error('Partner link not found')
+      const ownerId = partnerLink.owner_id
 
       // Fetch owner settings
       const { data: settings } = await supabase

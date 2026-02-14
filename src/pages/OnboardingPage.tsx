@@ -62,6 +62,7 @@ export function OnboardingPage() {
             <button
               type="button"
               onClick={() => setCycleLength((v) => Math.max(20, v - 1))}
+              aria-label="주기 줄이기"
             >
               −
             </button>
@@ -77,6 +78,7 @@ export function OnboardingPage() {
             <button
               type="button"
               onClick={() => setCycleLength((v) => Math.min(45, v + 1))}
+              aria-label="주기 늘리기"
             >
               +
             </button>
@@ -90,6 +92,7 @@ export function OnboardingPage() {
             <button
               type="button"
               onClick={() => setPeriodLength((v) => Math.max(2, v - 1))}
+              aria-label="기간 줄이기"
             >
               −
             </button>
@@ -105,6 +108,7 @@ export function OnboardingPage() {
             <button
               type="button"
               onClick={() => setPeriodLength((v) => Math.min(10, v + 1))}
+              aria-label="기간 늘리기"
             >
               +
             </button>

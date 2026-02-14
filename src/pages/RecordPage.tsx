@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react'
-import { format } from 'date-fns'
+import { format, isToday, differenceInDays, startOfDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useAppStore } from '@/lib/store'
 import { useToast } from '@/contexts/ToastContext'
@@ -217,17 +217,26 @@ export function RecordPage() {
     <div className="record-page">
       {/* Date Selector */}
       <div className="date-selector">
-        <button className="date-nav-btn" onClick={() => goToDate(-1)}>‹</button>
+        <button className="date-nav-btn" onClick={() => goToDate(-1)} aria-label="이전 날짜">‹</button>
         <div className="date-display">
           <span className="date-text">{displayDate}</span>
-          <button
-            className="date-today-btn"
-            onClick={() => setSelectedDate(new Date())}
-          >
-            오늘
-          </button>
+          {isToday(selectedDate) ? (
+            <span className="date-today-badge">오늘</span>
+          ) : (
+            <button
+              className="date-today-btn"
+              onClick={() => setSelectedDate(new Date())}
+            >
+              {(() => {
+                const diff = differenceInDays(startOfDay(selectedDate), startOfDay(new Date()))
+                if (diff < 0) return `${Math.abs(diff)}일 전`
+                return `${diff}일 후`
+              })()}
+              {' '}→ 오늘
+            </button>
+          )}
         </div>
-        <button className="date-nav-btn" onClick={() => goToDate(1)}>›</button>
+        <button className="date-nav-btn" onClick={() => goToDate(1)} aria-label="다음 날짜">›</button>
       </div>
 
       {/* Period Toggle */}

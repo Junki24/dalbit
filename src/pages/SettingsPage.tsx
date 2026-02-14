@@ -232,17 +232,17 @@ export function SettingsPage() {
         <div className="settings-field">
           <label>평균 생리 주기</label>
           <div className="compact-number-input">
-            <button onClick={() => setCycleLength((v) => Math.max(20, v - 1))}>−</button>
+            <button onClick={() => setCycleLength((v) => Math.max(20, v - 1))} aria-label="주기 줄이기">−</button>
             <span>{cycleLength}일</span>
-            <button onClick={() => setCycleLength((v) => Math.min(45, v + 1))}>+</button>
+            <button onClick={() => setCycleLength((v) => Math.min(45, v + 1))} aria-label="주기 늘리기">+</button>
           </div>
         </div>
         <div className="settings-field">
           <label>평균 생리 기간</label>
           <div className="compact-number-input">
-            <button onClick={() => setPeriodLength((v) => Math.max(2, v - 1))}>−</button>
+            <button onClick={() => setPeriodLength((v) => Math.max(2, v - 1))} aria-label="기간 줄이기">−</button>
             <span>{periodLength}일</span>
-            <button onClick={() => setPeriodLength((v) => Math.min(10, v + 1))}>+</button>
+            <button onClick={() => setPeriodLength((v) => Math.min(10, v + 1))} aria-label="기간 늘리기">+</button>
           </div>
         </div>
         <button
