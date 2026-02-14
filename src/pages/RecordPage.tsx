@@ -108,8 +108,8 @@ export function RecordPage() {
   const [newMedDoctor, setNewMedDoctor] = useState('')
   const [newMedNotes, setNewMedNotes] = useState('')
 
-  /** Build taken_at using selected date + current time */
-  const buildTakenAt = () => `${dateStr}T${format(new Date(), 'HH:mm:ss')}`
+  /** Build taken_at using selected date + current time (KST) */
+  const buildTakenAt = () => `${dateStr}T${format(new Date(), 'HH:mm:ss')}+09:00`
 
   // Reset state when date changes
   useEffect(() => {

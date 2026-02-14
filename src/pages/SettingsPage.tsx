@@ -8,6 +8,7 @@ import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { useMedications, useMedicationIntakes } from '@/hooks/useMedications'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { MigrationSection } from '@/components/MigrationSection'
 import './SettingsPage.css'
 
 export function SettingsPage() {
@@ -505,6 +506,9 @@ export function SettingsPage() {
           이전에 내보낸 JSON 백업 파일에서 데이터를 복원합니다.
         </p>
       </div>
+
+      {/* Migration from other apps */}
+      <MigrationSection />
 
       {/* Privacy */}
       <div className="settings-section">

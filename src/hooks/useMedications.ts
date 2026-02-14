@@ -129,9 +129,9 @@ export function useMedicationIntakes(date?: string) {
         .order('taken_at', { ascending: false })
 
       if (date) {
-        // Filter by date: taken_at starts with YYYY-MM-DD
-        query = query.gte('taken_at', `${date}T00:00:00`)
-          .lt('taken_at', `${date}T23:59:59.999`)
+        // Filter by date in KST (UTC+9)
+        query = query.gte('taken_at', `${date}T00:00:00+09:00`)
+          .lt('taken_at', `${date}T23:59:59.999+09:00`)
       }
 
       const { data, error } = await query
