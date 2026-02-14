@@ -481,6 +481,13 @@ export function SettingsPage() {
               </div>
             </div>
             <div className="guide-item">
+              <span className="guide-icon">📱</span>
+              <div>
+                <strong>다른 앱에서 가져오기</strong>
+                <p>기존에 사용하던 생리주기 앱(Flo, Clue, 봄 캘린더 등)의 스크린샷을 설정 → 다른 앱에서 가져오기에서 업로드하면 AI가 자동으로 기록을 분석해서 가져와요.</p>
+              </div>
+            </div>
+            <div className="guide-item">
               <span className="guide-icon">🔮</span>
               <div>
                 <strong>주기 예측</strong>
