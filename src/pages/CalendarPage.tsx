@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import {
   format,
   startOfMonth,
@@ -17,13 +17,16 @@ import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
 import { useAppStore } from '@/lib/store'
+import { CalendarPageSkeleton } from '@/components/Skeleton'
+import { useSwipe } from '@/hooks/useSwipe'
 import {
   isDateInPeriod,
   isDateInPredictedPeriod,
   isDateInFertileWindow,
   isOvulationDay,
 } from '@/lib/cycle'
-import type { CalendarDay } from '@/types'
+import { SYMPTOM_ICONS, SYMPTOM_LABELS, FLOW_LABELS } from '@/types'
+import type { CalendarDay, SymptomType } from '@/types'
 import './CalendarPage.css'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -31,10 +34,15 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 export function CalendarPage() {
   const navigate = useNavigate()
   const [currentMonth, setCurrentMonth] = useState(new Date())
-  const { periods } = usePeriods()
+  const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
+  const { periods, isLoading } = usePeriods()
   const { symptoms } = useSymptoms()
   const { prediction } = useCyclePrediction(periods)
   const setSelectedDate = useAppStore((s) => s.setSelectedDate)
+
+  const goToPrevMonth = useCallback(() => setCurrentMonth((m) => subMonths(m, 1)), [])
+  const goToNextMonth = useCallback(() => setCurrentMonth((m) => addMonths(m, 1)), [])
+  const swipeHandlers = useSwipe({ onSwipeLeft: goToNextMonth, onSwipeRight: goToPrevMonth })
 
   const calendarDays = useMemo((): CalendarDay[] => {
     const monthStart = startOfMonth(currentMonth)
@@ -66,8 +74,18 @@ export function CalendarPage() {
   }, [currentMonth, periods, symptoms, prediction])
 
   const handleDayClick = (day: CalendarDay) => {
-    setSelectedDate(day.date)
-    navigate('/record')
+    setSelectedDay(selectedDay?.dateStr === day.dateStr ? null : day)
+  }
+
+  const handleGoToRecord = () => {
+    if (selectedDay) {
+      setSelectedDate(selectedDay.date)
+      navigate('/record')
+    }
+  }
+
+  if (isLoading) {
+    return <div className="calendar-page"><CalendarPageSkeleton /></div>
   }
 
   return (
@@ -76,7 +94,8 @@ export function CalendarPage() {
       <div className="month-nav">
         <button
           className="month-nav-btn"
-          onClick={() => setCurrentMonth((m) => subMonths(m, 1))}
+          onClick={goToPrevMonth}
+          aria-label="이전 월"
         >
           ‹
         </button>
@@ -85,7 +104,8 @@ export function CalendarPage() {
         </h2>
         <button
           className="month-nav-btn"
-          onClick={() => setCurrentMonth((m) => addMonths(m, 1))}
+          onClick={goToNextMonth}
+          aria-label="다음 월"
         >
           ›
         </button>
@@ -111,8 +131,8 @@ export function CalendarPage() {
         </span>
       </div>
 
-      {/* Weekday Headers */}
-      <div className="calendar-grid">
+      {/* Weekday Headers + Calendar Grid */}
+      <div className="calendar-grid" {...swipeHandlers}>
         {WEEKDAYS.map((day) => (
           <div key={day} className="calendar-weekday">
             {day}
@@ -128,25 +148,84 @@ export function CalendarPage() {
           if (day.isPredictedPeriod) classes.push('calendar-day--predicted')
           if (day.isFertile && !day.isOvulation) classes.push('calendar-day--fertile')
           if (day.isOvulation) classes.push('calendar-day--ovulation')
+          if (selectedDay?.dateStr === day.dateStr) classes.push('calendar-day--selected')
+
+          const dayLabel = format(day.date, 'M월 d일 EEEE', { locale: ko })
+          const statusParts: string[] = []
+          if (day.isPeriod) statusParts.push('생리')
+          if (day.isPredictedPeriod) statusParts.push('예상 생리')
+          if (day.isFertile) statusParts.push('가임기')
+          if (day.isOvulation) statusParts.push('배란일')
+          if (day.symptoms.length > 0) statusParts.push(`증상 ${day.symptoms.length}개`)
+          const ariaLabel = statusParts.length > 0
+            ? `${dayLabel}, ${statusParts.join(', ')}`
+            : dayLabel
 
           return (
             <button
               key={day.dateStr}
               className={classes.join(' ')}
               onClick={() => handleDayClick(day)}
+              aria-label={ariaLabel}
+              aria-selected={selectedDay?.dateStr === day.dateStr}
+              aria-current={day.isToday ? 'date' : undefined}
             >
               <span className="calendar-day-number">
                 {format(day.date, 'd')}
               </span>
               {day.symptoms.length > 0 && (
-                <span className="calendar-day-dot" />
+                <span className="calendar-day-dot" aria-hidden="true" />
               )}
             </button>
           )
         })}
       </div>
 
-      {/* Selected date info could go here */}
+      {/* Selected Day Detail Panel */}
+      {selectedDay && (
+        <div className="day-detail-panel">
+          <div className="day-detail-header">
+            <h3 className="day-detail-date">
+              {format(selectedDay.date, 'M월 d일 (EEEE)', { locale: ko })}
+            </h3>
+            <button className="day-detail-close" onClick={() => setSelectedDay(null)}>✕</button>
+          </div>
+
+          <div className="day-detail-tags">
+            {selectedDay.isPeriod && (
+              <span className="day-tag day-tag--period">
+                🩸 생리{selectedDay.flowIntensity ? ` (${FLOW_LABELS[selectedDay.flowIntensity]})` : ''}
+              </span>
+            )}
+            {selectedDay.isPredictedPeriod && (
+              <span className="day-tag day-tag--predicted">🩸 예상 생리</span>
+            )}
+            {selectedDay.isOvulation && (
+              <span className="day-tag day-tag--ovulation">🥚 배란일</span>
+            )}
+            {selectedDay.isFertile && !selectedDay.isOvulation && (
+              <span className="day-tag day-tag--fertile">💫 가임기</span>
+            )}
+          </div>
+
+          {selectedDay.symptoms.length > 0 ? (
+            <div className="day-detail-symptoms">
+              {selectedDay.symptoms.map((s) => (
+                <span key={s.id} className="day-symptom-chip">
+                  {SYMPTOM_ICONS[s.symptom_type as SymptomType]}{' '}
+                  {SYMPTOM_LABELS[s.symptom_type as SymptomType]}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="day-detail-empty">기록된 증상이 없어요</p>
+          )}
+
+          <button className="day-detail-edit-btn" onClick={handleGoToRecord}>
+            ✏️ 이 날짜 기록하기
+          </button>
+        </div>
+      )}
     </div>
   )
 }

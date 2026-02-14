@@ -6,6 +6,7 @@ import { useCyclePrediction } from '@/hooks/useCyclePrediction'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { useAuth } from '@/contexts/AuthContext'
 import { InstallBanner } from '@/components/InstallBanner'
+import { HomePageSkeleton } from '@/components/Skeleton'
 import { SYMPTOM_ICONS, SYMPTOM_LABELS } from '@/types'
 import type { SymptomType } from '@/types'
 import './HomePage.css'
@@ -13,7 +14,7 @@ import './HomePage.css'
 export function HomePage() {
   const navigate = useNavigate()
   const { userSettings } = useAuth()
-  const { periods } = usePeriods()
+  const { periods, isLoading } = usePeriods()
   const { prediction, cycleDay, phaseInfo } = useCyclePrediction(periods)
   const todayStr = format(new Date(), 'yyyy-MM-dd')
   const { symptoms: todaySymptoms } = useSymptoms(todayStr)
@@ -21,6 +22,15 @@ export function HomePage() {
   const daysUntilNextPeriod = prediction
     ? differenceInDays(prediction.nextPeriodDate, new Date())
     : null
+
+  if (isLoading) {
+    return (
+      <div className="home-page">
+        <InstallBanner />
+        <HomePageSkeleton />
+      </div>
+    )
+  }
 
   return (
     <div className="home-page">
