@@ -4,17 +4,31 @@ import { useAuth } from '@/contexts/AuthContext'
 import './OnboardingPage.css'
 
 export function OnboardingPage() {
-  const { user, updateUserSettings } = useAuth()
+  const { user, userSettings, updateUserSettings, signOut } = useAuth()
   const navigate = useNavigate()
+
+  // 이미 온보딩 완료한 사용자가 이 페이지에 온 경우 → 홈으로
+  if (userSettings?.health_data_consent) {
+    navigate('/', { replace: true })
+    return null
+  }
   const [gender, setGender] = useState<'female' | 'male'>('female')
   const [displayName, setDisplayName] = useState('')
   const [cycleLength, setCycleLength] = useState(28)
   const [periodLength, setPeriodLength] = useState(5)
+  const [inviteCode, setInviteCode] = useState('')
+  const [inviteError, setInviteError] = useState(false)
   const [consent, setConsent] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  const VALID_INVITE_CODE = '0427'
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (inviteCode !== VALID_INVITE_CODE) {
+      setInviteError(true)
+      return
+    }
     if (!consent || !user) return
 
     setSaving(true)
@@ -46,6 +60,29 @@ export function OnboardingPage() {
       </div>
 
       <form className="onboarding-form" onSubmit={handleSubmit}>
+        {/* Invite Code */}
+        <div className="form-group">
+          <label htmlFor="inviteCode">초대 코드</label>
+          <input
+            id="inviteCode"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            placeholder="초대 코드를 입력하세요"
+            value={inviteCode}
+            onChange={(e) => {
+              setInviteCode(e.target.value)
+              setInviteError(false)
+            }}
+            className={`form-input ${inviteError ? 'form-input--error' : ''}`}
+            autoComplete="off"
+          />
+          {inviteError && (
+            <span className="form-error">초대 코드가 올바르지 않습니다</span>
+          )}
+          <span className="form-hint">달빛을 사용하려면 초대 코드가 필요합니다</span>
+        </div>
+
         {/* Gender Selection */}
         <div className="form-group">
           <label>사용 모드 선택</label>
@@ -198,11 +235,21 @@ export function OnboardingPage() {
         <button
           type="submit"
           className="btn-primary"
-          disabled={!consent || saving}
+          disabled={!consent || !inviteCode || saving}
         >
           {saving ? '저장 중...' : '시작하기'}
         </button>
       </form>
+
+      <button
+        className="onboarding-signout"
+        onClick={async () => {
+          await signOut()
+          navigate('/login', { replace: true })
+        }}
+      >
+        다른 계정으로 로그인
+      </button>
     </div>
   )
 }

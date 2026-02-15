@@ -114,6 +114,17 @@
   color: var(--color-text-muted);
 }
 
+.form-input--error {
+  border-color: #f43f5e;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.15);
+}
+
+.form-error {
+  font-size: 0.8rem;
+  color: #f43f5e;
+  font-weight: 500;
+}
+
 .consent-section {
   background: var(--color-bg-card);
   backdrop-filter: var(--glass-blur);
@@ -237,4 +248,17 @@
   color: var(--color-text-muted);
   text-align: center;
   line-height: 1.3;
+}
+
+.onboarding-signout {
+  display: block;
+  margin: 24px auto 0;
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
