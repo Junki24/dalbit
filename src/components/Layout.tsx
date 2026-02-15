@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
 import { OfflineBanner } from '@/components/OfflineBanner'
+import { UpdateBanner } from '@/components/UpdateBanner'
 import { usePageTransition } from '@/hooks/usePageTransition'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import { useHaptic } from '@/hooks/useHaptic'
@@ -86,6 +87,7 @@ export function Layout() {
             </span>
           </div>
         )}
+        <UpdateBanner />
         <OfflineBanner />
         <PageContent />
       </main>
