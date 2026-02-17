@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { format, parseISO, startOfDay, isAfter } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useIntimacy } from '@/hooks/useIntimacy'
@@ -22,7 +22,6 @@ function toDateStr(d: Date): string {
 }
 
 export function PartnerRecordPage() {
-  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { showToast, confirm } = useToast()
   const { isLinked, isLoading: partnerLoading, partnerName, partnerData } = usePartnerData()
@@ -134,11 +133,8 @@ export function PartnerRecordPage() {
 
   return (
     <div className="pr-page">
-      {/* ── Header with back button ── */}
-      <div className="pr-header">
-        <button className="pr-back-btn" onClick={() => navigate(-1)} aria-label="뒤로가기">← 뒤로</button>
-        <h2 className="pr-page-title">관계 기록</h2>
-      </div>
+      {/* ── Header ── */}
+      <h2 className="pr-page-title">관계 기록</h2>
 
       {/* ── Date Navigation ── */}
       <div className="pr-date-nav">

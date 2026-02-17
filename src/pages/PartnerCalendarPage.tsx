@@ -212,11 +212,8 @@ export function PartnerCalendarPage() {
 
   return (
     <div className="pc-page">
-      {/* Header with back button */}
-      <div className="pc-header">
-        <button className="pc-back-btn" onClick={() => navigate(-1)} aria-label="뒤로가기">← 뒤로</button>
-        <h2 className="pc-page-title">파트너 캘린더</h2>
-      </div>
+      {/* Header */}
+      <h2 className="pc-page-title">파트너 캘린더</h2>
 
       {/* Month Navigation */}
       <div className="pc-month-nav">
