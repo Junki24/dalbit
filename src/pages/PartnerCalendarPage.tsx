@@ -84,7 +84,7 @@ const PartnerDayCell = memo(function PartnerDayCell({
       <span className="pc-day-number">{format(day.date, 'd')}</span>
       <div className="pc-day-indicators">
         {day.isOvulation && <span className="pc-indicator pc-indicator--ovulation" aria-hidden="true" />}
-        {day.hasIntimacy && <span className="pc-indicator pc-indicator--intimacy" aria-hidden="true">💜</span>}
+        {day.hasIntimacy && <span className="pc-indicator pc-indicator--intimacy" aria-hidden="true">💚</span>}
       </div>
     </button>
   )
@@ -247,7 +247,7 @@ export function PartnerCalendarPage() {
           배란일
         </span>
         <span className="pc-legend-item">
-          <span className="pc-legend-emoji">💜</span>
+          <span className="pc-legend-emoji">💚</span>
           관계
         </span>
       </div>
@@ -288,7 +288,7 @@ export function PartnerCalendarPage() {
           {/* Intimacy Records */}
           {selectedDayRecords.length > 0 ? (
             <div className="pc-detail-records">
-              <span className="pc-detail-records-title">💜 관계 기록</span>
+              <span className="pc-detail-records-title">💚 관계 기록</span>
               {selectedDayRecords.map((record) => (
                 <div key={record.id} className="pc-record-item">
                   {record.time_of_day && (
@@ -310,7 +310,7 @@ export function PartnerCalendarPage() {
 
           {/* Navigate to record page */}
           <button className="pc-record-btn" onClick={handleGoToRecord}>
-            💜 관계 기록
+            💚 관계 기록
           </button>
         </div>
       )}

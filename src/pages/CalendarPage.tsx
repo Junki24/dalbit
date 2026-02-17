@@ -84,7 +84,7 @@ const CalendarDayCell = memo(function CalendarDayCell({
         <span className="calendar-day-dot" aria-hidden="true" />
       )}
       {day.hasIntimacy && (
-        <span className="calendar-day-dot calendar-day-dot--intimacy" aria-hidden="true">💜</span>
+        <span className="calendar-day-dot calendar-day-dot--intimacy" aria-hidden="true">💚</span>
       )}
     </button>
   )
@@ -299,7 +299,7 @@ export function CalendarPage() {
               <span className="day-tag day-tag--fertile">💫 가임기</span>
             )}
             {selectedDay.hasIntimacy && (
-              <span className="day-tag day-tag--intimacy">💜 관계</span>
+              <span className="day-tag day-tag--intimacy">💚 관계</span>
             )}
           </div>
 
