@@ -15,6 +15,8 @@ import {
 } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { useIntimacy } from '@/hooks/useIntimacy'
@@ -94,8 +96,36 @@ export function CalendarPage() {
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
   const { periods, isLoading } = usePeriods()
   const { symptoms } = useSymptoms()
-  const { records: intimacyRecords } = useIntimacy()
-  const { userSettings } = useAuth()
+  const { user, userSettings } = useAuth()
+
+  // 연결된 파트너의 user_id 가져오기 (여자→남자 or 남자→여자)
+  const { data: partnerUserId } = useQuery({
+    queryKey: ['linked-partner-uid', user?.id],
+    queryFn: async (): Promise<string | null> => {
+      if (!user || !isSupabaseConfigured) return null
+      // owner 쪽 (내가 공유한 파트너)
+      const { data: asOwner } = await supabase
+        .from('partner_sharing')
+        .select('partner_user_id')
+        .eq('owner_id', user.id)
+        .eq('accepted', true)
+        .single()
+      if (asOwner?.partner_user_id) return asOwner.partner_user_id as string
+      // partner 쪽 (상대가 공유한 나)
+      const { data: asPartner } = await supabase
+        .from('partner_sharing')
+        .select('owner_id')
+        .eq('partner_user_id', user.id)
+        .eq('accepted', true)
+        .single()
+      if (asPartner?.owner_id) return asPartner.owner_id as string
+      return null
+    },
+    enabled: Boolean(user) && isSupabaseConfigured,
+    staleTime: 10 * 60 * 1000,
+  })
+
+  const { records: intimacyRecords } = useIntimacy(undefined, partnerUserId ?? undefined)
   const { prediction } = useCyclePrediction(periods, {
     predictionMonths: userSettings?.prediction_months ?? 3,
     avgPeriodLength: userSettings?.average_period_length ?? 5,

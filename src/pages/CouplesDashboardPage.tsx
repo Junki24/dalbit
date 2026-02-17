@@ -25,7 +25,8 @@ function getProtectionLabel(key: string): string {
 
 export function CouplesDashboardPage() {
   const { isLinked, isLoading, partnerName, partnerData } = usePartnerData()
-  const { records: intimacyRecords, isLoading: intimacyLoading } = useIntimacy()
+  const partnerOwnerId = partnerData?.ownerSettings?.user_id
+  const { records: intimacyRecords, isLoading: intimacyLoading } = useIntimacy(undefined, partnerOwnerId ?? undefined)
   const [pregnancyMode, setPregnancyMode] = useState(false)
 
   const prediction = partnerData?.prediction ?? null

@@ -4,19 +4,21 @@ import { useAuth } from '@/contexts/AuthContext'
 import type { IntimacyRecord, TimeOfDay, ProtectionMethod } from '@/types'
 
 /** Single-date intimacy records (for RecordPage) */
-export function useIntimacy(date?: string) {
+export function useIntimacy(date?: string, partnerUserId?: string) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
 
   const { data: records = [], isLoading } = useQuery({
-    queryKey: ['intimacy', user?.id, date],
+    queryKey: ['intimacy', user?.id, date, partnerUserId],
     queryFn: async (): Promise<IntimacyRecord[]> => {
       if (!user || !isSupabaseConfigured) return []
+
+      const userIds = partnerUserId ? [user.id, partnerUserId] : [user.id]
 
       let query = supabase
         .from('intimacy_records')
         .select('*')
-        .eq('user_id', user.id)
+        .in('user_id', userIds)
         .order('created_at', { ascending: false })
 
       if (date) {
@@ -107,18 +109,20 @@ export function useIntimacy(date?: string) {
 }
 
 /** Range-based query for calendar / stats */
-export function useIntimacyRange(startDate?: string, endDate?: string) {
+export function useIntimacyRange(startDate?: string, endDate?: string, partnerUserId?: string) {
   const { user } = useAuth()
 
   const { data: records = [], isLoading } = useQuery({
-    queryKey: ['intimacy-range', user?.id, startDate, endDate],
+    queryKey: ['intimacy-range', user?.id, startDate, endDate, partnerUserId],
     queryFn: async (): Promise<IntimacyRecord[]> => {
       if (!user || !isSupabaseConfigured || !startDate || !endDate) return []
+
+      const userIds = partnerUserId ? [user.id, partnerUserId] : [user.id]
 
       const { data, error } = await supabase
         .from('intimacy_records')
         .select('*')
-        .eq('user_id', user.id)
+        .in('user_id', userIds)
         .gte('date', startDate)
         .lte('date', endDate)
         .order('date', { ascending: true })

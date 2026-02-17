@@ -94,7 +94,8 @@ const PartnerDayCell = memo(function PartnerDayCell({
 export function PartnerCalendarPage() {
   const navigate = useNavigate()
   const { isLinked, isLoading, partnerName, partnerData } = usePartnerData()
-  const { records: intimacyRecords } = useIntimacy()
+  const partnerOwnerId = partnerData?.ownerSettings?.user_id
+  const { records: intimacyRecords } = useIntimacy(undefined, partnerOwnerId ?? undefined)
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<PartnerCalendarDay | null>(null)
 
