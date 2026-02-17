@@ -262,3 +262,14 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ============================
+   Light Mode Overrides
+   ============================ */
+[data-theme="light"] .form-input {
+  background: rgba(241, 245, 249, 0.8);
+}
+
+[data-theme="light"] .form-input:focus {
+  background: rgba(255, 255, 255, 0.95);
+}

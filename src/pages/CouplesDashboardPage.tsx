@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { differenceInDays, format, parseISO, subMonths, startOfMonth } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { useNavigate } from 'react-router-dom'
 import { usePartnerData } from '@/hooks/usePartnerData'
 import { useIntimacy } from '@/hooks/useIntimacy'
 import { getCycleDay, getCyclePhaseInfo, isDateInFertileWindow } from '@/lib/cycle'
@@ -24,6 +25,7 @@ function getProtectionLabel(key: string): string {
 }
 
 export function CouplesDashboardPage() {
+  const navigate = useNavigate()
   const { isLinked, isLoading, partnerName, partnerData } = usePartnerData()
   const partnerOwnerId = partnerData?.ownerSettings?.user_id
   const { records: intimacyRecords, isLoading: intimacyLoading } = useIntimacy(undefined, partnerOwnerId ?? undefined)
@@ -141,8 +143,26 @@ export function CouplesDashboardPage() {
   // Loading
   if (isLoading || intimacyLoading) {
     return (
-      <div className="couples-dashboard">
-        <div className="cd-loading">로딩 중...</div>
+      <div className="couples-dashboard" aria-busy="true" aria-label="대시보드 데이터 로딩 중">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="skeleton" style={{ height: '32px', width: '60px', borderRadius: 'var(--radius-md)' }} />
+            <div className="skeleton" style={{ height: '24px', width: '120px', borderRadius: 'var(--radius-md)' }} />
+          </div>
+          <div className="skeleton" style={{ height: '32px', width: '50%', borderRadius: 'var(--radius-md)' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+            <div className="skeleton" style={{ height: '72px', borderRadius: 'var(--radius-lg)' }} />
+            <div className="skeleton" style={{ height: '72px', borderRadius: 'var(--radius-lg)' }} />
+            <div className="skeleton" style={{ height: '72px', borderRadius: 'var(--radius-lg)' }} />
+          </div>
+          <div className="skeleton" style={{ height: '160px', borderRadius: 'var(--radius-lg)' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-lg)' }} />
+            <div className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-lg)' }} />
+            <div className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-lg)' }} />
+            <div className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-lg)' }} />
+          </div>
+        </div>
       </div>
     )
   }
@@ -153,12 +173,18 @@ export function CouplesDashboardPage() {
       <div className="couples-dashboard">
         <div className="cd-empty">
           <span className="cd-empty-icon">💑</span>
-          <h2>파트너 연결이 필요해요</h2>
+          <h2>파트너와 연결해보세요</h2>
           <p>
-            파트너와 연결하면 함께 주기 분석과
+            설정에서 초대 링크를 생성하거나
             <br />
-            임신 계획을 세울 수 있어요.
+            파트너의 링크를 입력해주세요.
           </p>
+          <button
+            className="cd-empty-btn"
+            onClick={() => navigate('/settings')}
+          >
+            설정에서 연결하기
+          </button>
         </div>
       </div>
     )
@@ -169,6 +195,12 @@ export function CouplesDashboardPage() {
 
   return (
     <div className="couples-dashboard">
+      {/* Header with back button */}
+      <div className="cd-header">
+        <button className="cd-back-btn" onClick={() => navigate(-1)} aria-label="뒤로가기">← 뒤로</button>
+        <h2 className="cd-page-title">커플 대시보드</h2>
+      </div>
+
       {/* 1. Cycle Summary */}
       <section className="cd-section">
         <h3 className="cd-section-title">
@@ -279,6 +311,8 @@ export function CouplesDashboardPage() {
           <button
             className={`cd-toggle${pregnancyMode ? ' cd-toggle--on' : ''}`}
             onClick={() => setPregnancyMode(v => !v)}
+            role="switch"
+            aria-checked={pregnancyMode}
             aria-label="임신 계획 모드 토글"
           >
             <span className="cd-toggle-thumb" />

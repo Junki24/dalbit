@@ -45,6 +45,7 @@ const PartnerCalendarPage = lazyWithReload(() => import('@/pages/PartnerCalendar
 const PartnerRecordPage = lazyWithReload(() => import('@/pages/PartnerRecordPage').then(m => ({ default: m.PartnerRecordPage })))
 const CouplesDashboardPage = lazyWithReload(() => import('@/pages/CouplesDashboardPage').then(m => ({ default: m.CouplesDashboardPage })))
 const RecommendPage = lazyWithReload(() => import('@/pages/RecommendPage').then(m => ({ default: m.RecommendPage })))
+const GuidePage = lazyWithReload(() => import('@/pages/GuidePage').then(m => ({ default: m.GuidePage })))
 const AdminPage = lazyWithReload(() => import('@/pages/AdminPage'))
 
 const queryClient = new QueryClient({
@@ -133,6 +134,7 @@ export default function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/invite/:code" element={<InvitePage />} />
+                <Route path="/guide" element={<GuidePage />} />
                 <Route
                   path="/onboarding"
                   element={

@@ -169,8 +169,20 @@ export function PartnerCalendarPage() {
   /* ── Loading ── */
   if (isLoading) {
     return (
-      <div className="pc-page">
-        <div className="pc-loading">로딩 중...</div>
+      <div className="pc-page" aria-busy="true" aria-label="캘린더 데이터 로딩 중">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="skeleton" style={{ height: '32px', width: '60px', borderRadius: 'var(--radius-md)' }} />
+            <div className="skeleton" style={{ height: '24px', width: '120px', borderRadius: 'var(--radius-md)' }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="skeleton" style={{ height: '36px', width: '36px', borderRadius: '50%' }} />
+            <div className="skeleton" style={{ height: '24px', width: '140px', borderRadius: 'var(--radius-md)' }} />
+            <div className="skeleton" style={{ height: '36px', width: '36px', borderRadius: '50%' }} />
+          </div>
+          <div className="skeleton" style={{ height: '320px', borderRadius: 'var(--radius-lg)' }} />
+          <div className="skeleton" style={{ height: '32px', borderRadius: 'var(--radius-md)' }} />
+        </div>
       </div>
     )
   }
@@ -180,13 +192,19 @@ export function PartnerCalendarPage() {
     return (
       <div className="pc-page">
         <div className="pc-empty">
-          <span className="pc-empty-icon">📅</span>
-          <h2>파트너 연결 없음</h2>
+          <span className="pc-empty-icon">💑</span>
+          <h2>파트너와 연결해보세요</h2>
           <p>
-            파트너에게 초대 링크를 받아 수락하면
+            설정에서 초대 링크를 생성하거나
             <br />
-            주기 캘린더를 확인할 수 있어요.
+            파트너의 링크를 입력해주세요.
           </p>
+          <button
+            className="pc-empty-btn"
+            onClick={() => navigate('/settings')}
+          >
+            설정에서 연결하기
+          </button>
         </div>
       </div>
     )
@@ -194,6 +212,12 @@ export function PartnerCalendarPage() {
 
   return (
     <div className="pc-page">
+      {/* Header with back button */}
+      <div className="pc-header">
+        <button className="pc-back-btn" onClick={() => navigate(-1)} aria-label="뒤로가기">← 뒤로</button>
+        <h2 className="pc-page-title">파트너 캘린더</h2>
+      </div>
+
       {/* Month Navigation */}
       <div className="pc-month-nav">
         <button className="pc-month-btn" onClick={goToPrevMonth} aria-label="이전 월">

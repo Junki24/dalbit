@@ -83,8 +83,29 @@ export function PartnerPage() {
 
   if (isLoading) {
     return (
-      <div className="partner-page">
-        <div className="partner-loading">로딩 중...</div>
+      <div className="partner-page" aria-busy="true" aria-label="파트너 데이터 로딩 중">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
+          <div className="skeleton" style={{ height: '40px', width: '60%', borderRadius: 'var(--radius-md)' }} />
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <div className="skeleton" style={{ height: '48px', flex: 1, borderRadius: 'var(--radius-md)' }} />
+            <div className="skeleton" style={{ height: '48px', flex: 1, borderRadius: 'var(--radius-md)' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
+            <div className="skeleton" style={{ height: '140px', width: '140px', borderRadius: '50%' }} />
+          </div>
+          <div className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-lg)' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-lg)' }} />
+            <div className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-lg)' }} />
+            <div className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-lg)' }} />
+            <div className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-lg)' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <div className="skeleton" style={{ height: '56px', flex: 1, borderRadius: 'var(--radius-md)' }} />
+            <div className="skeleton" style={{ height: '56px', flex: 1, borderRadius: 'var(--radius-md)' }} />
+            <div className="skeleton" style={{ height: '56px', flex: 1, borderRadius: 'var(--radius-md)' }} />
+          </div>
+        </div>
       </div>
     )
   }
@@ -95,8 +116,8 @@ export function PartnerPage() {
       <div className="partner-page">
         <div className="partner-empty">
           <span className="partner-empty-icon">💑</span>
-          <h2>파트너와 함께 관리해요</h2>
-          <p>파트너의 주기를 이해하면<br />더 깊은 배려가 가능해요.</p>
+          <h2>파트너와 연결해보세요</h2>
+          <p>설정에서 초대 링크를 생성하거나<br />파트너의 링크를 입력해주세요.</p>
 
           <div className="partner-onboarding-steps">
             <div className="partner-step">
@@ -318,6 +339,9 @@ export function PartnerPage() {
         <button
           className={`partner-pregnancy-toggle${showPregnancyBanner ? ' partner-pregnancy-toggle--active' : ''}`}
           onClick={() => setShowPregnancyBanner(v => !v)}
+          role="switch"
+          aria-checked={showPregnancyBanner}
+          aria-label="임신 계획 모드 토글"
         >
           <span>🤰</span>
           <span>임신 계획 모드</span>
@@ -353,15 +377,15 @@ export function PartnerPage() {
 
       {/* (E) Quick Actions */}
       <div className="partner-quick-actions">
-        <button className="partner-action-btn" onClick={() => navigate('/partner-record')}>
+        <button className="partner-action-btn" onClick={() => navigate('/partner-record')} aria-label="관계 기록하기 페이지로 이동">
           <span className="partner-action-icon">📝</span>
           <span className="partner-action-label">기록하기</span>
         </button>
-        <button className="partner-action-btn" onClick={() => navigate('/partner-calendar')}>
+        <button className="partner-action-btn" onClick={() => navigate('/partner-calendar')} aria-label="파트너 캘린더 페이지로 이동">
           <span className="partner-action-icon">📅</span>
           <span className="partner-action-label">캘린더</span>
         </button>
-        <button className="partner-action-btn" onClick={() => navigate('/couples')}>
+        <button className="partner-action-btn" onClick={() => navigate('/couples')} aria-label="커플 대시보드로 이동">
           <span className="partner-action-icon">💕</span>
           <span className="partner-action-label">커플</span>
         </button>

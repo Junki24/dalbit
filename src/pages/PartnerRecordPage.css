@@ -29,8 +29,8 @@
 }
 
 .pr-date-arrow {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1px solid var(--color-border);
   background: rgba(15, 23, 42, 0.5);
@@ -262,7 +262,7 @@
 }
 
 .pr-field--methods {
-  animation: slideDown 0.2s ease-out;
+  animation: slideDown 0.25s ease-out;
 }
 
 @keyframes slideDown {
@@ -457,7 +457,8 @@
 }
 
 [data-theme="light"] .pr-fertile-banner {
-  background: rgba(244, 63, 94, 0.05);
+  background: rgba(244, 63, 94, 0.04);
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.04);
 }
 
 [data-theme="light"] .pr-time-btn {
@@ -495,4 +496,44 @@
 
 [data-theme="light"] .pr-record-protection {
   background: rgba(168, 85, 247, 0.06);
+}
+
+[data-theme="light"] .pr-record-protection--no {
+  background: rgba(244, 63, 94, 0.06);
+}
+
+[data-theme="light"] .pr-time-btn--active {
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.35);
+}
+
+[data-theme="light"] .pr-protection-btn--yes {
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.35);
+}
+
+[data-theme="light"] .pr-protection-btn--no {
+  background: rgba(244, 63, 94, 0.05);
+  border-color: rgba(244, 63, 94, 0.2);
+}
+
+[data-theme="light"] .pr-method-chip--active {
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.35);
+}
+
+[data-theme="light"] .pr-note-input:focus {
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.08);
+}
+
+[data-theme="light"] .pr-save-btn {
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.15);
+}
+
+[data-theme="light"] .pr-section {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="light"] .pr-date-nav {
+  background: rgba(255, 255, 255, 0.85);
 }

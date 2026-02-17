@@ -442,6 +442,7 @@ export function SettingsPage() {
           <h3 className="settings-section-title" style={{ marginBottom: 0 }}>📖 사용 가이드</h3>
           <span className={`guide-arrow ${guideOpen ? 'guide-arrow--open' : ''}`}>›</span>
         </button>
+        <Link to="/guide" className="settings-guide-link">📖 전체 사용 가이드 보기</Link>
         {guideOpen && (
           <div className="guide-content">
             {isMale ? (

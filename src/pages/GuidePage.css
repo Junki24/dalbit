@@ -1,0 +1,1060 @@
+/* ═══════════════════════════════════════════
+   GuidePage — 달빛 사용 가이드
+   ═══════════════════════════════════════════ */
+
+.guide-page {
+  min-height: 100dvh;
+  background: var(--color-bg);
+  padding: 0 0 40px;
+  overflow-x: hidden;
+}
+
+/* ── Header ── */
+.guide-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+
+.guide-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: rgba(15, 23, 42, 0.4);
+  color: var(--color-text);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.guide-back-btn:active {
+  background: var(--color-primary);
+  transform: scale(0.92);
+}
+
+.guide-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+.guide-header-moon {
+  font-size: 1.2rem;
+  animation: gentleFloat 3s ease-in-out infinite;
+}
+
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* ── Content Container ── */
+.guide-content-wrap {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Intro Banner ── */
+.guide-intro {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.12) 0%, rgba(168, 85, 247, 0.06) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: var(--shadow-glow);
+}
+
+.guide-intro-emoji {
+  font-size: 2.4rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.guide-intro h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  letter-spacing: -0.03em;
+}
+
+.guide-intro p {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Section ── */
+.guide-section {
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px 18px;
+  box-shadow: var(--shadow-card);
+  opacity: 0;
+  animation: guideFadeUp 0.5s ease-out forwards;
+}
+
+.guide-section:nth-child(2) { animation-delay: 0.05s; }
+.guide-section:nth-child(3) { animation-delay: 0.1s; }
+.guide-section:nth-child(4) { animation-delay: 0.15s; }
+.guide-section:nth-child(5) { animation-delay: 0.2s; }
+.guide-section:nth-child(6) { animation-delay: 0.25s; }
+.guide-section:nth-child(7) { animation-delay: 0.3s; }
+.guide-section:nth-child(8) { animation-delay: 0.35s; }
+
+@keyframes guideFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.guide-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: -0.02em;
+}
+
+.guide-section-title .section-icon {
+  font-size: 1.1rem;
+}
+
+/* ── Step Cards (시작하기, 파트너 연결) ── */
+.guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guide-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  position: relative;
+}
+
+.guide-step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.guide-step-text h4 {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 3px;
+}
+
+.guide-step-text p {
+  font-size: 0.73rem;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Connector line between steps */
+.guide-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 31px;
+  top: 44px;
+  bottom: -14px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--color-primary), transparent);
+  opacity: 0.3;
+}
+
+/* ── Feature Cards ── */
+.guide-features {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.guide-feature {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.guide-feature-info {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.guide-feature-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  width: 32px;
+  text-align: center;
+  padding-top: 2px;
+}
+
+.guide-feature-info h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.guide-feature-info p {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Phone Mockup Frame ── */
+.mockup-phone {
+  width: 200px;
+  margin: 0 auto;
+  border-radius: 20px;
+  border: 2px solid rgba(100, 116, 139, 0.35);
+  background: var(--color-bg);
+  overflow: hidden;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  position: relative;
+}
+
+.mockup-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  font-size: 0.48rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: rgba(15, 23, 42, 0.5);
+  border-bottom: 1px solid rgba(51, 65, 85, 0.2);
+}
+
+.mockup-statusbar-time { letter-spacing: 0.02em; }
+.mockup-statusbar-icons { display: flex; gap: 3px; font-size: 0.45rem; }
+
+.mockup-screen {
+  padding: 8px;
+  min-height: 180px;
+}
+
+/* ── Mockup: Home (주기 원형 차트) ── */
+.mock-home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 6px;
+}
+
+.mock-cycle-ring {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 6px solid rgba(51, 65, 85, 0.3);
+  border-top-color: var(--color-period);
+  border-right-color: var(--color-period);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: mockRingSpin 20s linear infinite;
+}
+
+@keyframes mockRingSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.mock-cycle-inner {
+  position: absolute;
+  text-align: center;
+  animation: mockRingSpin 20s linear infinite reverse;
+}
+
+.mock-cycle-day {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.mock-cycle-label {
+  font-size: 0.42rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.mock-phase-badge {
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 0.45rem;
+  font-weight: 700;
+  background: rgba(244, 63, 94, 0.15);
+  color: var(--color-period);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
+
+.mock-insight-row {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+
+.mock-insight-card {
+  flex: 1;
+  padding: 5px 4px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 6px;
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  text-align: center;
+}
+
+.mock-insight-card .ic-val {
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.mock-insight-card .ic-lbl {
+  font-size: 0.35rem;
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+/* ── Mockup: Calendar ── */
+.mock-calendar {
+  padding: 6px;
+}
+
+.mock-cal-header {
+  text-align: center;
+  font-size: 0.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.mock-cal-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.mock-cal-day-name {
+  font-size: 0.35rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-weight: 600;
+  padding: 2px 0;
+}
+
+.mock-cal-cell {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.38rem;
+  font-weight: 600;
+  color: var(--color-text);
+  position: relative;
+}
+
+.mock-cal-cell--period {
+  background: rgba(244, 63, 94, 0.25);
+  color: var(--color-period);
+  font-weight: 700;
+}
+
+.mock-cal-cell--fertile {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--color-fertile);
+}
+
+.mock-cal-cell--ovulation {
+  background: rgba(168, 85, 247, 0.25);
+  color: var(--color-ovulation);
+  font-weight: 700;
+}
+
+.mock-cal-cell--predicted {
+  background: rgba(244, 63, 94, 0.1);
+  color: var(--color-period);
+  opacity: 0.7;
+}
+
+.mock-cal-cell--today {
+  border: 1.5px solid var(--color-primary);
+}
+
+.mock-cal-legend {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.mock-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.32rem;
+  color: var(--color-text-muted);
+}
+
+.mock-legend-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.mock-legend-dot--period { background: var(--color-period); }
+.mock-legend-dot--fertile { background: var(--color-fertile); }
+.mock-legend-dot--ovulation { background: var(--color-ovulation); }
+
+/* ── Mockup: Record ── */
+.mock-record {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.mock-record-date {
+  text-align: center;
+  font-size: 0.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.mock-record-group {
+  padding: 5px 6px;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 6px;
+  border: 1px solid rgba(51, 65, 85, 0.3);
+}
+
+.mock-record-label {
+  font-size: 0.36rem;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.mock-record-toggles {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.mock-toggle {
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 0.35rem;
+  font-weight: 600;
+  border: 1px solid rgba(51, 65, 85, 0.4);
+  color: var(--color-text-muted);
+}
+
+.mock-toggle--active {
+  background: rgba(244, 63, 94, 0.2);
+  border-color: rgba(244, 63, 94, 0.3);
+  color: var(--color-period);
+}
+
+.mock-toggle--symptom {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.25);
+  color: var(--color-fertile);
+}
+
+.mock-flow-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.mock-flow-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.mock-flow-dot--filled {
+  background: var(--color-period);
+  border-color: var(--color-period);
+}
+
+/* ── Mockup: Stats ── */
+.mock-stats {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.mock-stat-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.mock-stat-card {
+  padding: 6px 5px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 6px;
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  text-align: center;
+}
+
+.mock-stat-val {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--color-primary-light);
+}
+
+.mock-stat-lbl {
+  font-size: 0.32rem;
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+.mock-chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 40px;
+  padding: 4px 6px;
+  background: rgba(30, 41, 59, 0.4);
+  border-radius: 6px;
+}
+
+.mock-chart-bar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(to top, var(--color-primary), var(--color-primary-light));
+  opacity: 0.8;
+  min-height: 4px;
+}
+
+/* ── Mockup: Recommend ── */
+.mock-recommend {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mock-rec-title {
+  text-align: center;
+  font-size: 0.45rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.mock-rec-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(51, 65, 85, 0.3);
+}
+
+.mock-rec-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(168, 85, 247, 0.2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+.mock-rec-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mock-rec-name {
+  font-size: 0.38rem;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mock-rec-desc {
+  font-size: 0.3rem;
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+.mock-rec-price {
+  font-size: 0.38rem;
+  font-weight: 700;
+  color: var(--color-primary-light);
+  flex-shrink: 0;
+}
+
+/* ── Mockup: Partner Home ── */
+.mock-partner-home {
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.mock-dday-card {
+  text-align: center;
+  padding: 8px;
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, rgba(168, 85, 247, 0.08) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(244, 63, 94, 0.15);
+}
+
+.mock-dday-label {
+  font-size: 0.38rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.mock-dday-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-period);
+}
+
+.mock-dday-sub {
+  font-size: 0.35rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.mock-tip-card {
+  padding: 7px 8px;
+  background: rgba(34, 197, 94, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(34, 197, 94, 0.15);
+}
+
+.mock-tip-title {
+  font-size: 0.38rem;
+  font-weight: 700;
+  color: var(--color-success);
+  margin-bottom: 3px;
+}
+
+.mock-tip-text {
+  font-size: 0.33rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.mock-symptom-summary {
+  display: flex;
+  gap: 3px;
+}
+
+.mock-symptom-chip {
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 0.33rem;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: var(--color-fertile);
+}
+
+/* ── Mockup: Partner Calendar ── */
+/* Reuses .mock-calendar styles with slight tweaks */
+.mock-partner-cal .mock-cal-cell--period {
+  background: rgba(244, 63, 94, 0.15);
+  opacity: 0.8;
+}
+
+/* ── Mockup: Partner Record ── */
+.mock-partner-record {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mock-time-selector {
+  display: flex;
+  gap: 3px;
+}
+
+.mock-time-btn {
+  flex: 1;
+  padding: 3px 4px;
+  border-radius: 6px;
+  font-size: 0.33rem;
+  text-align: center;
+  font-weight: 600;
+  border: 1px solid rgba(51, 65, 85, 0.4);
+  color: var(--color-text-muted);
+}
+
+.mock-time-btn--active {
+  background: rgba(124, 58, 237, 0.2);
+  border-color: rgba(124, 58, 237, 0.3);
+  color: var(--color-primary-light);
+}
+
+.mock-contra-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 6px;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 6px;
+  border: 1px solid rgba(51, 65, 85, 0.3);
+}
+
+.mock-contra-label {
+  font-size: 0.36rem;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.mock-mini-toggle {
+  width: 22px;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--color-success);
+  position: relative;
+}
+
+.mock-mini-toggle::after {
+  content: '';
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: white;
+  top: 1.5px;
+  right: 1.5px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.mock-memo-area {
+  padding: 5px 6px;
+  background: rgba(30, 41, 59, 0.4);
+  border-radius: 6px;
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  min-height: 24px;
+}
+
+.mock-memo-placeholder {
+  font-size: 0.33rem;
+  color: rgba(148, 163, 184, 0.5);
+}
+
+/* ── Mockup: Couples Dashboard ── */
+.mock-couples {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mock-couple-stat {
+  display: flex;
+  gap: 4px;
+}
+
+.mock-couple-card {
+  flex: 1;
+  padding: 6px 4px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 6px;
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  text-align: center;
+}
+
+.mock-couple-card .cc-emoji {
+  font-size: 0.65rem;
+}
+
+.mock-couple-card .cc-val {
+  font-size: 0.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-top: 1px;
+}
+
+.mock-couple-card .cc-lbl {
+  font-size: 0.28rem;
+  color: var(--color-text-muted);
+}
+
+.mock-pregnancy-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 7px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.08));
+  border-radius: 6px;
+  border: 1px solid rgba(34, 197, 94, 0.15);
+}
+
+.mock-pregnancy-badge .preg-icon {
+  font-size: 0.5rem;
+}
+
+.mock-pregnancy-badge .preg-text {
+  font-size: 0.33rem;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.mock-pregnancy-badge .preg-sub {
+  font-size: 0.28rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Settings & Tips Section ── */
+.guide-tips-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.guide-tip-card {
+  padding: 14px 12px;
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  text-align: center;
+}
+
+.guide-tip-card .tip-icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.guide-tip-card h4 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.guide-tip-card p {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Color Legend Bar ── */
+.guide-color-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  margin-top: 6px;
+}
+
+.guide-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.guide-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.guide-legend-dot--period { background: var(--color-period); }
+.guide-legend-dot--fertile { background: var(--color-fertile); }
+.guide-legend-dot--ovulation { background: var(--color-ovulation); }
+.guide-legend-dot--success { background: var(--color-success); }
+
+/* ── Gender Tab Switcher ── */
+.guide-gender-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  margin-bottom: 16px;
+}
+
+.guide-gender-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.guide-gender-tab--active {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+/* ── Divider ── */
+.guide-feature + .guide-feature {
+  padding-top: 16px;
+  border-top: 1px solid rgba(51, 65, 85, 0.2);
+}
+
+/* ═══════════════════════════════════════════
+   Light Mode Overrides
+   ═══════════════════════════════════════════ */
+
+[data-theme="light"] .guide-header {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom-color: rgba(203, 213, 225, 0.5);
+}
+
+[data-theme="light"] .guide-back-btn {
+  background: rgba(241, 245, 249, 0.8);
+  border-color: rgba(203, 213, 225, 0.5);
+}
+
+[data-theme="light"] .guide-intro {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.06) 0%, rgba(168, 85, 247, 0.03) 100%);
+  border-color: rgba(124, 58, 237, 0.12);
+}
+
+[data-theme="light"] .guide-step {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.3);
+}
+
+[data-theme="light"] .guide-gender-tabs {
+  background: rgba(241, 245, 249, 0.8);
+}
+
+[data-theme="light"] .guide-tip-card {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.3);
+}
+
+[data-theme="light"] .guide-color-legend {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.3);
+}
+
+[data-theme="light"] .mockup-phone {
+  border-color: rgba(203, 213, 225, 0.6);
+  background: var(--color-bg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .mockup-statusbar {
+  background: rgba(241, 245, 249, 0.8);
+  border-bottom-color: rgba(203, 213, 225, 0.3);
+}
+
+[data-theme="light"] .mock-record-group,
+[data-theme="light"] .mock-insight-card,
+[data-theme="light"] .mock-stat-card,
+[data-theme="light"] .mock-couple-card,
+[data-theme="light"] .mock-contra-toggle,
+[data-theme="light"] .mock-memo-area,
+[data-theme="light"] .mock-rec-card,
+[data-theme="light"] .mock-chart-bars {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.3);
+}
+
+[data-theme="light"] .mock-toggle {
+  border-color: rgba(203, 213, 225, 0.5);
+}
+
+[data-theme="light"] .mock-time-btn {
+  border-color: rgba(203, 213, 225, 0.5);
+}
+
+/* ── Settings link from SettingsPage ── */
+.settings-guide-link {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(168, 85, 247, 0.04) 100%);
+  color: var(--color-primary-light);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-guide-link:active {
+  background: rgba(124, 58, 237, 0.18);
+  transform: scale(0.98);
+}

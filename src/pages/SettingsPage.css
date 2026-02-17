@@ -491,3 +491,16 @@
   color: var(--color-text-muted);
   padding-bottom: 8px;
 }
+
+/* ============================
+   Light Mode Overrides
+   ============================ */
+[data-theme="light"] .dev-comment {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.04) 0%, rgba(168, 85, 247, 0.02) 100%);
+  border-color: rgba(124, 58, 237, 0.1);
+}
+
+[data-theme="light"] .btn-share-app {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(168, 85, 247, 0.04) 100%);
+  border-color: rgba(124, 58, 237, 0.15);
+}

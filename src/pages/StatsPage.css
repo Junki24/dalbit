@@ -626,3 +626,15 @@
   color: var(--color-text-muted);
   font-weight: 600;
 }
+
+/* ============================
+   Light Mode Overrides
+   ============================ */
+[data-theme="light"] .stat-card,
+[data-theme="light"] .symptom-rank-item,
+[data-theme="light"] .history-item,
+[data-theme="light"] .severity-item,
+[data-theme="light"] .correlation-item {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.3);
+}

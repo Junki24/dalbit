@@ -54,8 +54,8 @@
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--color-border);
   color: var(--color-text);
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   font-size: 1.25rem;
   cursor: pointer;
@@ -115,6 +115,7 @@
 /* ── Day Cell ── */
 .pc-day {
   aspect-ratio: 1;
+  min-height: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -255,7 +256,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
@@ -465,4 +466,106 @@
 .pc-record-btn:active {
   background: rgba(168, 85, 247, 0.2);
   transform: scale(0.98);
+}
+
+/* ═══════════════════════════════════════════════
+   Light Mode Overrides
+   ═══════════════════════════════════════════════ */
+[data-theme="light"] .pc-empty-icon {
+  filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.18));
+}
+
+[data-theme="light"] .pc-day:hover {
+  background: rgba(124, 58, 237, 0.04);
+}
+
+[data-theme="light"] .pc-day:active {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+[data-theme="light"] .pc-day--period {
+  background: rgba(244, 63, 94, 0.14);
+}
+
+[data-theme="light"] .pc-day--predicted {
+  background: rgba(244, 63, 94, 0.05);
+}
+
+[data-theme="light"] .pc-day--fertile {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+[data-theme="light"] .pc-day--ovulation {
+  background: rgba(168, 85, 247, 0.05);
+}
+
+[data-theme="light"] .pc-day--selected {
+  background: rgba(124, 58, 237, 0.07);
+  box-shadow: 0 0 6px rgba(124, 58, 237, 0.12);
+}
+
+[data-theme="light"] .pc-tag--period {
+  background: rgba(244, 63, 94, 0.1);
+}
+
+[data-theme="light"] .pc-tag--predicted {
+  background: rgba(244, 63, 94, 0.05);
+}
+
+[data-theme="light"] .pc-tag--ovulation {
+  background: rgba(168, 85, 247, 0.1);
+}
+
+[data-theme="light"] .pc-tag--fertile {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+[data-theme="light"] .pc-detail {
+  box-shadow: var(--shadow-card), 0 0 16px rgba(124, 58, 237, 0.04);
+}
+
+[data-theme="light"] .pc-detail-close {
+  background: rgba(203, 213, 225, 0.15);
+}
+
+[data-theme="light"] .pc-detail-close:active {
+  background: rgba(203, 213, 225, 0.3);
+}
+
+[data-theme="light"] .pc-detail-phase {
+  background: rgba(124, 58, 237, 0.03);
+}
+
+[data-theme="light"] .pc-record-chip {
+  background: rgba(168, 85, 247, 0.07);
+  border-color: rgba(168, 85, 247, 0.1);
+}
+
+[data-theme="light"] .pc-record-btn {
+  background: rgba(168, 85, 247, 0.05);
+  border-color: rgba(168, 85, 247, 0.2);
+}
+
+[data-theme="light"] .pc-record-btn:active {
+  background: rgba(168, 85, 247, 0.12);
+}
+
+[data-theme="light"] .pc-indicator--ovulation {
+  box-shadow: 0 0 3px rgba(168, 85, 247, 0.35);
+}
+
+[data-theme="light"] .pc-legend-dot--period {
+  box-shadow: 0 0 4px rgba(244, 63, 94, 0.25);
+}
+
+[data-theme="light"] .pc-legend-dot--fertile {
+  box-shadow: 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="light"] .pc-legend-dot--ovulation {
+  box-shadow: 0 0 4px rgba(168, 85, 247, 0.25);
+}
+
+[data-theme="light"] .pc-month-btn:active {
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.15);
 }

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { format, parseISO, startOfDay, isAfter } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useIntimacy } from '@/hooks/useIntimacy'
@@ -22,6 +22,7 @@ function toDateStr(d: Date): string {
 }
 
 export function PartnerRecordPage() {
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { showToast, confirm } = useToast()
   const { isLinked, isLoading: partnerLoading, partnerName, partnerData } = usePartnerData()
@@ -112,14 +113,33 @@ export function PartnerRecordPage() {
 
   if (partnerLoading) {
     return (
-      <div className="pr-page">
-        <div className="pr-loading">로딩 중...</div>
+      <div className="pr-page" aria-busy="true" aria-label="기록 데이터 로딩 중">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="skeleton" style={{ height: '32px', width: '60px', borderRadius: 'var(--radius-md)' }} />
+            <div className="skeleton" style={{ height: '24px', width: '100px', borderRadius: 'var(--radius-md)' }} />
+          </div>
+          <div className="skeleton" style={{ height: '44px', borderRadius: 'var(--radius-md)' }} />
+          <div className="skeleton" style={{ height: '72px', borderRadius: 'var(--radius-lg)' }} />
+          <div className="skeleton" style={{ height: '120px', borderRadius: 'var(--radius-lg)' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="skeleton" style={{ height: '56px', borderRadius: 'var(--radius-md)' }} />
+            <div className="skeleton" style={{ height: '56px', borderRadius: 'var(--radius-md)' }} />
+          </div>
+          <div className="skeleton" style={{ height: '48px', borderRadius: 'var(--radius-md)' }} />
+        </div>
       </div>
     )
   }
 
   return (
     <div className="pr-page">
+      {/* ── Header with back button ── */}
+      <div className="pr-header">
+        <button className="pr-back-btn" onClick={() => navigate(-1)} aria-label="뒤로가기">← 뒤로</button>
+        <h2 className="pr-page-title">관계 기록</h2>
+      </div>
+
       {/* ── Date Navigation ── */}
       <div className="pr-date-nav">
         <button
