@@ -160,6 +160,96 @@ function determineNotification(
   return null
 }
 
+// ── Male user notification logic ──
+function determineMaleNotification(
+  partnerPeriods: Period[],
+  settings: UserSettings,
+  today: string
+): NotificationPayload | null {
+  const avgCycle = settings.average_cycle_length || 28
+
+  // Sort periods descending
+  const sorted = [...partnerPeriods].sort(
+    (a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+  )
+
+  if (sorted.length === 0) {
+    return null
+  }
+
+  const lastPeriod = sorted[0]
+  const lastStartDate = new Date(lastPeriod.start_date)
+  const todayDate = new Date(today)
+  const daysSinceLast = Math.floor(
+    (todayDate.getTime() - lastStartDate.getTime()) / (1000 * 60 * 60 * 24)
+  )
+  const cycleDay = daysSinceLast + 1
+
+  // Days until next predicted period
+  const daysUntilPeriod = avgCycle - daysSinceLast
+  const ovulationDay = avgCycle - 14
+
+  // ── Priority 1: Partner's period approaching (1-3 days) ──
+  if (daysUntilPeriod >= 1 && daysUntilPeriod <= 3) {
+    return {
+      title: '🩸 파트너 생리 예정',
+      body: daysUntilPeriod === 1
+        ? '파트너 생리 예정일이 내일이에요. 따뜻하게 챙겨주세요!'
+        : `파트너 생리 예정일이 ${daysUntilPeriod}일 남았어요. 따뜻하게 챙겨주세요 💜`,
+      tag: 'dalbit-partner-period-soon',
+      url: '/',
+    }
+  }
+
+  // ── Priority 2: Partner's period today ──
+  if (daysUntilPeriod === 0) {
+    return {
+      title: '🩸 파트너 생리 예정일',
+      body: '오늘은 파트너의 생리 예정일이에요. 편안하게 해주세요 ☕',
+      tag: 'dalbit-partner-period-today',
+      url: '/',
+    }
+  }
+
+  // ── Priority 3: Partner menstruating (cycle day 1-5) ──
+  if (cycleDay >= 1 && cycleDay <= 5) {
+    return {
+      title: '🩸 파트너가 생리 중이에요',
+      body: '파트너가 생리 중이에요. 편안하게 해주세요 ☕',
+      tag: 'dalbit-partner-menstruating',
+      url: '/',
+    }
+  }
+
+  // ── Priority 4: Partner's ovulation day ──
+  if (cycleDay === ovulationDay) {
+    return {
+      title: '🥚 파트너 배란 예정일',
+      body: '오늘은 파트너의 배란 예정일이에요 🥚',
+      tag: 'dalbit-partner-ovulation',
+      url: '/',
+    }
+  }
+
+  // ── Priority 5: Partner's fertile window ──
+  if (cycleDay >= ovulationDay - 5 && cycleDay <= ovulationDay) {
+    return {
+      title: '🌸 파트너 가임기',
+      body: '파트너가 가임기에 있어요 🌸',
+      tag: 'dalbit-partner-fertile',
+      url: '/',
+    }
+  }
+
+  // ── Default: Partner's cycle day ──
+  return {
+    title: '달빛 🌙',
+    body: `파트너의 주기 ${cycleDay}일째예요. 달빛에서 확인해보세요 🌙`,
+    tag: 'dalbit-partner-cycle',
+    url: '/',
+  }
+}
+
 // ── Main handler ──
 serve(async (req) => {
   // CORS preflight
@@ -219,8 +309,9 @@ serve(async (req) => {
     let skipped = 0
     const errors: string[] = []
 
-    // 1. Get users with notifications enabled (filtered for test mode)
-    // 남성 유저는 생리주기 알림 대상에서 제외
+    // ══════════════════════════════════════════════
+    // 1. FEMALE NOTIFICATIONS (기존 여성 유저 알림)
+    // ══════════════════════════════════════════════
     let usersQuery = supabase
       .from('user_settings')
       .select('user_id, display_name, gender, average_cycle_length, notifications_enabled')
@@ -238,18 +329,13 @@ serve(async (req) => {
     }
 
     for (const user of users as UserSettings[]) {
-      // 2. Get user's push subscriptions
       const { data: subs } = await supabase
         .from('push_subscriptions')
         .select('*')
         .eq('user_id', user.user_id)
 
-      if (!subs || subs.length === 0) {
-        skipped++
-        continue
-      }
+      if (!subs || subs.length === 0) { skipped++; continue }
 
-      // 3. Get user's period data
       const { data: periods } = await supabase
         .from('periods')
         .select('start_date, end_date')
@@ -258,14 +344,12 @@ serve(async (req) => {
         .order('start_date', { ascending: false })
         .limit(6)
 
-      // 4. Get today's symptoms
       const { data: symptoms } = await supabase
         .from('symptoms')
         .select('date')
         .eq('user_id', user.user_id)
         .eq('date', today)
 
-      // 5. Determine notification content
       const notification = broadcastPayload ?? determineNotification(
         (periods ?? []) as Period[],
         (symptoms ?? []) as { date: string }[],
@@ -273,25 +357,93 @@ serve(async (req) => {
         today
       )
 
-      if (!notification) {
-        skipped++
-        continue
-      }
+      if (!notification) { skipped++; continue }
 
-      // 6. Send to all user's subscriptions
       for (const sub of subs as PushSub[]) {
         try {
           await webpush.sendNotification(
-            {
-              endpoint: sub.endpoint,
-              keys: { p256dh: sub.p256dh, auth: sub.auth },
-            },
+            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
             JSON.stringify(notification)
           )
           sent++
         } catch (err: unknown) {
           const pushErr = err as { statusCode?: number; body?: string }
-          // Remove expired/invalid subscriptions
+          if (pushErr.statusCode === 404 || pushErr.statusCode === 410) {
+            await supabase.from('push_subscriptions').delete().eq('id', sub.id)
+          }
+          errors.push(`sub=${sub.id}: ${pushErr.statusCode ?? 'unknown'}`)
+          failed++
+        }
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    // 2. MALE NOTIFICATIONS (남성 유저 파트너 알림)
+    // ══════════════════════════════════════════════
+    let maleQuery = supabase
+      .from('user_settings')
+      .select('user_id, display_name, gender, average_cycle_length, notifications_enabled')
+      .eq('notifications_enabled', true)
+      .eq('gender', 'male')
+
+    if (filterUserId) {
+      maleQuery = maleQuery.eq('user_id', filterUserId)
+    }
+
+    const { data: maleUsers } = await maleQuery
+
+    for (const maleUser of (maleUsers ?? []) as UserSettings[]) {
+      // Get push subscriptions
+      const { data: subs } = await supabase
+        .from('push_subscriptions')
+        .select('*')
+        .eq('user_id', maleUser.user_id)
+
+      if (!subs || subs.length === 0) { skipped++; continue }
+
+      // Find accepted partner link where this male is the partner
+      const { data: link } = await supabase
+        .from('partner_sharing')
+        .select('owner_id')
+        .eq('partner_user_id', maleUser.user_id)
+        .eq('accepted', true)
+        .single()
+
+      if (!link) { skipped++; continue }
+
+      // Fetch partner's (owner's) settings for cycle length
+      const { data: ownerSettings } = await supabase
+        .from('user_settings')
+        .select('average_cycle_length')
+        .eq('user_id', link.owner_id)
+        .single()
+
+      // Fetch partner's periods
+      const { data: partnerPeriods } = await supabase
+        .from('periods')
+        .select('start_date, end_date')
+        .eq('user_id', link.owner_id)
+        .is('deleted_at', null)
+        .order('start_date', { ascending: false })
+        .limit(6)
+
+      const notification = broadcastPayload ?? determineMaleNotification(
+        (partnerPeriods ?? []) as Period[],
+        { ...maleUser, average_cycle_length: ownerSettings?.average_cycle_length ?? 28 },
+        today
+      )
+
+      if (!notification) { skipped++; continue }
+
+      for (const sub of subs as PushSub[]) {
+        try {
+          await webpush.sendNotification(
+            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+            JSON.stringify(notification)
+          )
+          sent++
+        } catch (err: unknown) {
+          const pushErr = err as { statusCode?: number; body?: string }
           if (pushErr.statusCode === 404 || pushErr.statusCode === 410) {
             await supabase.from('push_subscriptions').delete().eq('id', sub.id)
           }

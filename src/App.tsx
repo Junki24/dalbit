@@ -41,6 +41,9 @@ const SettingsPage = lazyWithReload(() => import('@/pages/SettingsPage').then(m 
 const StatsPage = lazyWithReload(() => import('@/pages/StatsPage').then(m => ({ default: m.StatsPage })))
 const InvitePage = lazyWithReload(() => import('@/pages/InvitePage').then(m => ({ default: m.InvitePage })))
 const PartnerPage = lazyWithReload(() => import('@/pages/PartnerPage').then(m => ({ default: m.PartnerPage })))
+const PartnerCalendarPage = lazyWithReload(() => import('@/pages/PartnerCalendarPage').then(m => ({ default: m.PartnerCalendarPage })))
+const PartnerRecordPage = lazyWithReload(() => import('@/pages/PartnerRecordPage').then(m => ({ default: m.PartnerRecordPage })))
+const CouplesDashboardPage = lazyWithReload(() => import('@/pages/CouplesDashboardPage').then(m => ({ default: m.CouplesDashboardPage })))
 const RecommendPage = lazyWithReload(() => import('@/pages/RecommendPage').then(m => ({ default: m.RecommendPage })))
 const AdminPage = lazyWithReload(() => import('@/pages/AdminPage'))
 
@@ -152,6 +155,9 @@ export default function App() {
                   <Route path="/record" element={<FemaleOnlyRoute><RecordPage /></FemaleOnlyRoute>} />
                   <Route path="/stats" element={<FemaleOnlyRoute><StatsPage /></FemaleOnlyRoute>} />
                   <Route path="/partner" element={<PartnerPage />} />
+                  <Route path="/partner-calendar" element={<PartnerCalendarPage />} />
+                  <Route path="/partner-record" element={<PartnerRecordPage />} />
+                  <Route path="/couples" element={<CouplesDashboardPage />} />
                   <Route path="/recommend" element={<RecommendPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/admin" element={<AdminPage />} />

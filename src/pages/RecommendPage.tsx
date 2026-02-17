@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { usePartnerData } from '@/hooks/usePartnerData'
 import { usePadPreferences, usePartnerPadPreferences, buildShoppingUrls } from '@/hooks/usePadPreferences'
+import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import {
   PRODUCT_TYPE_LABELS, PRODUCT_TYPE_ICONS,
@@ -475,11 +476,32 @@ function PartnerGiftSection({
 // Main Component
 export function RecommendPage() {
   const { isLinked, isLoading } = usePartnerData()
+  const { userSettings } = useAuth()
+  const isMale = userSettings?.gender === 'male'
 
   if (isLoading) {
     return (
       <div className="recommend-page">
         <div className="recommend-loading">로딩 중...</div>
+      </div>
+    )
+  }
+
+  // 남성 유저가 파트너 미연결 시 — 여성 설문 대신 연결 안내
+  if (isMale && !isLinked) {
+    return (
+      <div className="recommend-page">
+        <div className="recommend-partner">
+          <div className="recommend-header">
+            <span className="recommend-header-icon">🎁</span>
+            <h2>파트너 추천 가이드</h2>
+          </div>
+          <div className="recommend-no-survey">
+            <span className="recommend-no-survey-icon">💑</span>
+            <p>파트너와 연결하면 맞춤 행동요령과<br/>선물 추천을 받을 수 있어요.</p>
+            <p className="recommend-no-survey-hint">설정에서 파트너를 연결해보세요! 💜</p>
+          </div>
+        </div>
       </div>
     )
   }

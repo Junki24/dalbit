@@ -1,34 +1,42 @@
 .partner-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
-/* Empty / Loading */
+/* ─── Loading ─── */
 .partner-loading {
   text-align: center;
   padding: 40px;
   color: var(--color-text-muted);
 }
 
+/* ─── Empty State / Onboarding (A) ─── */
 .partner-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 60px 24px;
-  gap: 12px;
+  padding: 48px 24px 36px;
+  gap: 8px;
 }
 
 .partner-empty-icon {
-  font-size: 3rem;
-  filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.3));
+  font-size: 4rem;
+  filter: drop-shadow(0 4px 16px rgba(124, 58, 237, 0.25));
+  animation: partner-float 3s ease-in-out infinite;
+}
+
+@keyframes partner-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
 .partner-empty h2 {
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.3rem;
+  font-weight: 800;
   color: var(--color-text);
+  margin-top: 8px;
 }
 
 .partner-empty p {
@@ -37,7 +45,79 @@
   line-height: 1.6;
 }
 
-/* Header */
+.partner-onboarding-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 20px;
+}
+
+.partner-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  text-align: left;
+  box-shadow: var(--shadow-card);
+}
+
+.partner-step-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.partner-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.partner-step-content strong {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.partner-step-content span {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.partner-empty-btn {
+  margin-top: 24px;
+  padding: 14px 36px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.partner-empty-btn:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+/* ─── Header ─── */
 .partner-header {
   display: flex;
   align-items: center;
@@ -57,7 +137,41 @@
   letter-spacing: -0.02em;
 }
 
-/* Cycle Circle */
+/* ─── D-Day Counters (B) ─── */
+.partner-dday-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.partner-dday {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 100px;
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1.5px solid var(--dday-accent, var(--color-border));
+  box-shadow: var(--shadow-card);
+}
+
+.partner-dday--ovulation {
+  --dday-accent: #a78bfa;
+}
+
+.partner-dday-icon {
+  font-size: 0.9rem;
+}
+
+.partner-dday-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--dday-accent, var(--color-text));
+}
+
+/* ─── Cycle Circle ─── */
 .partner-cycle-circle {
   display: flex;
   justify-content: center;
@@ -93,7 +207,7 @@
   margin-top: 2px;
 }
 
-/* Phase */
+/* ─── Phase Card ─── */
 .partner-phase {
   background: var(--color-bg-card);
   backdrop-filter: var(--glass-blur);
@@ -130,7 +244,96 @@
   margin: 0;
 }
 
-/* Prediction Cards */
+/* ─── Section Title (shared) ─── */
+.partner-section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 10px;
+}
+
+/* ─── Care Tips (C) ─── */
+.partner-care-section {
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.partner-care-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.partner-care-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.partner-care-emoji {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.partner-care-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.partner-care-text strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.partner-care-text span {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+/* ─── Partner Symptoms (D) ─── */
+.partner-symptoms-section {
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.partner-symptom-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.partner-symptom-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 100px;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.partner-symptom-tag-icon {
+  font-size: 0.9rem;
+}
+
+/* ─── Prediction Cards ─── */
 .partner-predictions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -178,13 +381,153 @@
   color: var(--color-text-muted);
 }
 
-/* Privacy */
+/* ─── Pregnancy Banner (F) ─── */
+.partner-pregnancy-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.partner-pregnancy-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--color-text);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  box-shadow: var(--shadow-card);
+}
+
+.partner-pregnancy-toggle--active {
+  border-color: #22c55e;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background: rgba(34, 197, 94, 0.06);
+}
+
+.partner-toggle-chevron {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.partner-pregnancy-banner {
+  padding: 16px;
+  border: 1px solid #22c55e;
+  border-top: none;
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+  background: rgba(34, 197, 94, 0.05);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  animation: partner-slide-down 0.2s ease-out;
+}
+
+@keyframes partner-slide-down {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.partner-pregnancy-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.partner-pregnancy-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.partner-pregnancy-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.partner-pregnancy-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.partner-pregnancy-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.partner-pregnancy-badge--active {
+  background: #22c55e;
+  color: #fff;
+  border-color: #22c55e;
+  animation: partner-pulse 2s ease-in-out infinite;
+}
+
+@keyframes partner-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ─── Quick Actions (E) ─── */
+.partner-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.partner-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+  box-shadow: var(--shadow-card);
+}
+
+.partner-action-btn:active {
+  transform: scale(0.96);
+}
+
+.partner-action-icon {
+  font-size: 1.5rem;
+}
+
+.partner-action-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ─── Privacy ─── */
 .partner-privacy {
   background: var(--color-bg-card);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: 14px;
 }
 

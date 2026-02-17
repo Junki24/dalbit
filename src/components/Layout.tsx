@@ -21,6 +21,8 @@ const FEMALE_NAV_ITEMS = [
 
 const MALE_NAV_ITEMS = [
   { path: '/', icon: '💑', label: '홈' },
+  { path: '/partner-calendar', icon: '📅', label: '캘린더' },
+  { path: '/partner-record', icon: '✏️', label: '기록' },
   { path: '/recommend', icon: '🎁', label: '추천' },
   { path: '/settings', icon: '⚙️', label: '설정' },
 ]

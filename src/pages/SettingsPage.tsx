@@ -444,63 +444,112 @@ export function SettingsPage() {
         </button>
         {guideOpen && (
           <div className="guide-content">
-            <div className="guide-item">
-              <span className="guide-icon">🏠</span>
-              <div>
-                <strong>홈</strong>
-                <p>오늘의 주기 상태, D-day, 컨디션 인사이트를 한눈에 확인해요. 주간 미니 캘린더에서 이번 주 예측도 볼 수 있어요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">📅</span>
-              <div>
-                <strong>캘린더</strong>
-                <p>생리일(빨강), 예상 생리일(연빨강), 가임기(파랑), 배란일(보라)이 색으로 구분돼요. 날짜를 탭하면 상세 정보를 확인하고 기록 페이지로 이동할 수 있어요. 하단에 주기 기록 표도 있어요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">✏️</span>
-              <div>
-                <strong>기록</strong>
-                <p>생리 시작/종료, 유량, 증상, 약 복용, 관계일, 메모를 한 화면에서 기록해요. 날짜를 좌우로 넘기면 다른 날짜도 기록할 수 있어요.</p>
-                <p style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>💡 생리 기간은 기본 5일로 예측되지만, 종료 버튼을 눌러 실제 종료일을 기록하면 예측이 더 정확해져요!</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">📊</span>
-              <div>
-                <strong>통계</strong>
-                <p>평균 주기/기간, 증상 패턴, 관계일 트렌드를 분석해요. PDF 리포트로 내보내기도 가능해요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">💑</span>
-              <div>
-                <strong>파트너 공유</strong>
-                <p>설정에서 초대 링크를 생성하면 파트너가 읽기 전용으로 주기 정보를 확인할 수 있어요. 파트너에게 맞춤 행동 요령도 제공돼요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">📱</span>
-              <div>
-                <strong>다른 앱에서 가져오기</strong>
-                <p>기존에 사용하던 생리주기 앱(Flo, Clue, 봄 캘린더 등)의 스크린샷을 설정 → 다른 앱에서 가져오기에서 업로드하면 AI가 자동으로 기록을 분석해서 가져와요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">🔮</span>
-              <div>
-                <strong>주기 예측</strong>
-                <p>기록이 쌓일수록 예측이 정확해져요. 설정에서 예측 개월 수(1~5)를 조절할 수 있어요.</p>
-              </div>
-            </div>
-            <div className="guide-item">
-              <span className="guide-icon">🔔</span>
-              <div>
-                <strong>알림</strong>
-                <p>알림을 켜면 매일 저녁 9시에 주기 상태에 맞는 스마트 알림을 받아요. 생리 예정, 배란일, 가임기 시작 등을 미리 알려줘요.</p>
-              </div>
-            </div>
+            {isMale ? (
+              <>
+                <div className="guide-item">
+                  <span className="guide-icon">💑</span>
+                  <div>
+                    <strong>홈</strong>
+                    <p>파트너의 현재 주기 상태, D-Day, 컨디션을 확인하고 맞춤 행동 요령을 볼 수 있어요.</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">📅</span>
+                  <div>
+                    <strong>캘린더</strong>
+                    <p>파트너의 생리일, 예상 생리일, 가임기, 배란일을 캘린더에서 한눈에 확인해요. 나의 관계 기록도 함께 표시돼요.</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">✏️</span>
+                  <div>
+                    <strong>기록</strong>
+                    <p>관계 기록을 남기고 파트너의 주기 상태를 함께 확인할 수 있어요. 날짜를 좌우로 넘겨 다른 날짜도 기록해요.</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">🎁</span>
+                  <div>
+                    <strong>추천</strong>
+                    <p>파트너의 주기 단계에 맞는 행동 요령과 선물 추천을 받아보세요.</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">📊</span>
+                  <div>
+                    <strong>커플 대시보드</strong>
+                    <p>관계 트렌드, 주기별 패턴, 임신 계획 도구를 한 곳에서 확인해요. 홈 화면 하단에서 접근할 수 있어요.</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">🔔</span>
+                  <div>
+                    <strong>알림</strong>
+                    <p>파트너의 생리 예정일, 가임기 시작, 배란일 등을 미리 알려줘요. 매일 저녁 9시에 스마트 알림을 받아요.</p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="guide-item">
+                  <span className="guide-icon">🏠</span>
+                  <div>
+                    <strong>홈</strong>
+                    <p>오늘의 주기 상태, D-day, 컨디션 인사이트를 한눈에 확인해요. 주간 미니 캘린더에서 이번 주 예측도 볼 수 있어요.</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">📅</span>
+                  <div>
+                    <strong>캘린더</strong>
+                    <p>생리일(빨강), 예상 생리일(연빨강), 가임기(파랑), 배란일(보라)이 색으로 구분돼요. 날짜를 탭하면 상세 정보를 확인하고 기록 페이지로 이동할 수 있어요. 하단에 주기 기록 표도 있어요.</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">✏️</span>
+                  <div>
+                    <strong>기록</strong>
+                    <p>생리 시작/종료, 유량, 증상, 약 복용, 관계일, 메모를 한 화면에서 기록해요. 날짜를 좌우로 넘기면 다른 날짜도 기록할 수 있어요.</p>
+                    <p style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>💡 생리 기간은 기본 5일로 예측되지만, 종료 버튼을 눌러 실제 종료일을 기록하면 예측이 더 정확해져요!</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">📊</span>
+                  <div>
+                    <strong>통계</strong>
+                    <p>평균 주기/기간, 증상 패턴, 관계일 트렌드를 분석해요. PDF 리포트로 내보내기도 가능해요.</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">💑</span>
+                  <div>
+                    <strong>파트너 공유</strong>
+                    <p>설정에서 초대 링크를 생성하면 파트너가 읽기 전용으로 주기 정보를 확인할 수 있어요. 파트너에게 맞춤 행동 요령도 제공돼요.</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">📱</span>
+                  <div>
+                    <strong>다른 앱에서 가져오기</strong>
+                    <p>기존에 사용하던 생리주기 앱(Flo, Clue, 봄 캘린더 등)의 스크린샷을 설정 → 다른 앱에서 가져오기에서 업로드하면 AI가 자동으로 기록을 분석해서 가져와요.</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">🔮</span>
+                  <div>
+                    <strong>주기 예측</strong>
+                    <p>기록이 쌓일수록 예측이 정확해져요. 설정에서 예측 개월 수(1~5)를 조절할 수 있어요.</p>
+                  </div>
+                </div>
+                <div className="guide-item">
+                  <span className="guide-icon">🔔</span>
+                  <div>
+                    <strong>알림</strong>
+                    <p>알림을 켜면 매일 저녁 9시에 주기 상태에 맞는 스마트 알림을 받아요. 생리 예정, 배란일, 가임기 시작 등을 미리 알려줘요.</p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -641,8 +690,20 @@ export function SettingsPage() {
         {isMale ? (
           <>
             <p className="settings-desc">
-              파트너로부터 초대 링크를 받아 수락하면 주기 정보를 확인할 수 있어요.
+              파트너에게 초대 링크를 보내거나, 파트너로부터 링크를 받아 연결할 수 있어요.
             </p>
+            {inviteCode ? (
+              <div className="invite-result">
+                <span className="invite-code">{inviteCode}</span>
+                <button className="btn-copy" onClick={handleCopyInvite}>
+                  {showCopied ? '복사됨! ✓' : '링크 복사'}
+                </button>
+              </div>
+            ) : (
+              <button className="btn-invite" onClick={handleGenerateInvite}>
+                초대 링크 생성
+              </button>
+            )}
             <Link to="/" className="btn-partner-view">
               💑 파트너 페이지 보기
             </Link>

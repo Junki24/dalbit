@@ -1,0 +1,518 @@
+/* ── CouplesDashboardPage ── */
+
+.couples-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Loading */
+.cd-loading {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+/* ── Empty State ── */
+.cd-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 24px;
+  gap: 12px;
+  animation: cdFadeIn 0.4s ease-out;
+}
+
+.cd-empty-icon {
+  font-size: 3rem;
+  filter: drop-shadow(0 0 14px rgba(124, 58, 237, 0.3));
+}
+
+.cd-empty h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.cd-empty p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  max-width: 260px;
+  line-height: 1.6;
+}
+
+/* ── Section Card ── */
+.cd-section {
+  background: var(--color-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+  animation: cdFadeIn 0.35s ease-out both;
+}
+
+.cd-section:nth-child(2) { animation-delay: 0.06s; }
+.cd-section:nth-child(3) { animation-delay: 0.12s; }
+.cd-section:nth-child(4) { animation-delay: 0.18s; }
+.cd-section:nth-child(5) { animation-delay: 0.24s; }
+
+.cd-section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 14px;
+  letter-spacing: -0.02em;
+}
+
+/* ── 1. Cycle Summary ── */
+.cd-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.cd-summary-card {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  border-radius: var(--radius-md);
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  animation: cdScaleIn 0.3s ease-out both;
+}
+
+.cd-summary-card:nth-child(2) { animation-delay: 0.06s; }
+.cd-summary-card:nth-child(3) { animation-delay: 0.12s; }
+
+.cd-summary-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+.cd-summary-unit {
+  font-size: 0.72rem;
+  font-weight: 500;
+  opacity: 0.55;
+}
+
+.cd-summary-label {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+/* ── 2. Monthly Trend — horizontal bars ── */
+.cd-monthly-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cd-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: cdFadeIn 0.3s ease-out both;
+}
+
+.cd-bar-label {
+  width: 32px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.cd-bar-track {
+  flex: 1;
+  height: 22px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(51, 65, 85, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cd-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border-radius: 6px;
+  min-width: 2px;
+  transition: width 0.5s ease;
+  transform-origin: left;
+  animation: cdBarGrow 0.5s ease-out both;
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.15);
+}
+
+.cd-bar-count {
+  width: 32px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: left;
+  flex-shrink: 0;
+}
+
+/* ── 3. Phase Distribution — 4 cards ── */
+.cd-phase-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.cd-phase-card {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  border-top: 3px solid;
+  border-radius: var(--radius-md);
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  animation: cdScaleIn 0.3s ease-out both;
+}
+
+.cd-phase-card:nth-child(2) { animation-delay: 0.06s; }
+.cd-phase-card:nth-child(3) { animation-delay: 0.12s; }
+.cd-phase-card:nth-child(4) { animation-delay: 0.18s; }
+
+.cd-phase-icon {
+  font-size: 1.2rem;
+}
+
+.cd-phase-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cd-phase-count {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.cd-phase-pct {
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+/* ── 4. Protection Stats ── */
+.cd-protection-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cd-prot-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cd-prot-label {
+  width: 72px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-text);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.cd-prot-track {
+  flex: 1;
+  height: 18px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(51, 65, 85, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cd-prot-fill {
+  height: 100%;
+  border-radius: 6px;
+  min-width: 2px;
+  transition: width 0.5s ease;
+  transform-origin: left;
+  animation: cdBarGrow 0.5s ease-out both;
+}
+
+.cd-prot-fill[data-method="condom"] {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.2);
+}
+
+.cd-prot-fill[data-method="pill"] {
+  background: linear-gradient(90deg, #ec4899, #f472b6);
+  box-shadow: 0 0 6px rgba(236, 72, 153, 0.2);
+}
+
+.cd-prot-fill[data-method="iud"] {
+  background: linear-gradient(90deg, #a855f7, #c084fc);
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.2);
+}
+
+.cd-prot-fill[data-method="other"] {
+  background: linear-gradient(90deg, #64748b, #94a3b8);
+  box-shadow: 0 0 6px rgba(100, 116, 139, 0.2);
+}
+
+.cd-prot-fill[data-method="none"] {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.2);
+}
+
+.cd-prot-pct {
+  width: 36px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── 5. Pregnancy Planning ── */
+.cd-section--pregnancy {
+  border-color: var(--color-success);
+  box-shadow: var(--shadow-card), 0 0 24px rgba(34, 197, 94, 0.1);
+}
+
+.cd-pregnancy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Toggle switch */
+.cd-toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: rgba(51, 65, 85, 0.5);
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s ease;
+  padding: 0;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cd-toggle--on {
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.cd-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.25s ease;
+  pointer-events: none;
+}
+
+.cd-toggle--on .cd-toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* Pregnancy body */
+.cd-pregnancy-body {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: cdFadeIn 0.3s ease-out;
+}
+
+.cd-fertility-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.cd-fertility-card {
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: var(--radius-md);
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.cd-fertility-card--ov {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.cd-fertility-icon {
+  font-size: 1.2rem;
+}
+
+.cd-fertility-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.cd-fertility-dates {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-success);
+  letter-spacing: -0.01em;
+}
+
+.cd-fertility-countdown {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--color-success);
+  letter-spacing: -0.02em;
+}
+
+/* Fertile window alert */
+.cd-fertile-alert {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-success);
+  animation: cdPulse 2s ease-in-out infinite;
+}
+
+/* Pregnancy tip box */
+.cd-pregnancy-tip {
+  display: flex;
+  gap: 10px;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.cd-tip-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.cd-pregnancy-tip p {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.cd-pregnancy-tip strong {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.cd-no-prediction {
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ── Animations ── */
+@keyframes cdFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cdScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cdBarGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes cdPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+  50% {
+    box-shadow: 0 0 16px 2px rgba(34, 197, 94, 0.15);
+  }
+}
+
+/* ── Light Mode ── */
+[data-theme="light"] .cd-summary-card,
+[data-theme="light"] .cd-phase-card {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.3);
+}
+
+[data-theme="light"] .cd-phase-card {
+  border-top-width: 3px;
+}
+
+[data-theme="light"] .cd-bar-track,
+[data-theme="light"] .cd-prot-track {
+  background: rgba(203, 213, 225, 0.4);
+  border-color: rgba(203, 213, 225, 0.3);
+}
+
+[data-theme="light"] .cd-toggle {
+  background: rgba(203, 213, 225, 0.6);
+  border-color: rgba(203, 213, 225, 0.4);
+}
+
+[data-theme="light"] .cd-fertility-card {
+  background: rgba(34, 197, 94, 0.06);
+  border-color: rgba(34, 197, 94, 0.15);
+}
+
+[data-theme="light"] .cd-fertility-card--ov {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+[data-theme="light"] .cd-fertile-alert {
+  background: rgba(34, 197, 94, 0.08);
+}
+
+[data-theme="light"] .cd-pregnancy-tip {
+  background: rgba(34, 197, 94, 0.04);
+  border-color: rgba(34, 197, 94, 0.12);
+}
