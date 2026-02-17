@@ -197,6 +197,10 @@
   background: rgba(203, 213, 225, 0.6);
 }
 
+[data-theme="light"] .theme-toggle-track--active {
+  background: #22c55e;
+}
+
 [data-theme="light"] .invite-code {
   background: rgba(241, 245, 249, 0.8);
 }
