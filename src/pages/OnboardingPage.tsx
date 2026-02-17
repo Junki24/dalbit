@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import './OnboardingPage.css'
@@ -7,11 +7,7 @@ export function OnboardingPage() {
   const { user, userSettings, updateUserSettings, signOut } = useAuth()
   const navigate = useNavigate()
 
-  // 이미 온보딩 완료한 사용자가 이 페이지에 온 경우 → 홈으로
-  if (userSettings?.health_data_consent) {
-    navigate('/', { replace: true })
-    return null
-  }
+  // All hooks MUST be called before any conditional return (React Rules of Hooks)
   const [gender, setGender] = useState<'female' | 'male'>('female')
   const [displayName, setDisplayName] = useState('')
   const [cycleLength, setCycleLength] = useState(28)
@@ -20,6 +16,18 @@ export function OnboardingPage() {
   const [inviteError, setInviteError] = useState(false)
   const [consent, setConsent] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  // 이미 온보딩 완료한 사용자가 이 페이지에 온 경우 → 홈으로
+  useEffect(() => {
+    if (userSettings?.health_data_consent) {
+      navigate('/', { replace: true })
+    }
+  }, [userSettings?.health_data_consent, navigate])
+
+  // 온보딩 완료 사용자는 렌더링하지 않음
+  if (userSettings?.health_data_consent) {
+    return null
+  }
 
   const VALID_INVITE_CODE = '0427'
 

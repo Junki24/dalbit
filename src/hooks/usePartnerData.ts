@@ -23,7 +23,7 @@ export function usePartnerData() {
   const { user } = useAuth()
 
   // Find accepted partner sharing where current user is the partner
-  const { data: partnerLink } = useQuery({
+  const { data: partnerLink, isLoading: isLinkLoading } = useQuery({
     queryKey: ['partner-link', user?.id],
     queryFn: async (): Promise<PartnerLink | null> => {
       if (!user || !isSupabaseConfigured) return null
@@ -41,7 +41,7 @@ export function usePartnerData() {
   })
 
   // Fetch partner's data if linked
-  const { data: partnerData, isLoading } = useQuery({
+  const { data: partnerData, isLoading: isDataLoading } = useQuery({
     queryKey: ['partner-data', partnerLink?.owner_id],
     queryFn: async (): Promise<PartnerData> => {
       if (!partnerLink) throw new Error('Partner link not found')
@@ -92,7 +92,7 @@ export function usePartnerData() {
 
   return {
     isLinked: Boolean(partnerLink),
-    isLoading,
+    isLoading: isLinkLoading || isDataLoading,
     partnerName: partnerData?.ownerSettings?.display_name ?? null,
     partnerData: partnerData ?? null,
   }
