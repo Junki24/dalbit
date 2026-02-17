@@ -11,6 +11,7 @@ import { useMedications, useMedicationIntakes } from '@/hooks/useMedications'
 import { useIntimacy } from '@/hooks/useIntimacy'
 import { useCyclePrediction } from '@/hooks/useCyclePrediction'
 import { useHaptic } from '@/hooks/useHaptic'
+import { useSwipe } from '@/hooks/useSwipe'
 import { isDateInPeriod, getFlowForDate, isDateInFertileWindow, isOvulationDay } from '@/lib/cycle'
 import {
   SYMPTOM_LABELS,
@@ -263,6 +264,18 @@ export function RecordPage() {
     setSelectedDate(newDate)
   }
 
+  const goToPrevDay = useCallback(() => {
+    const d = new Date(selectedDate)
+    d.setDate(d.getDate() - 1)
+    setSelectedDate(d)
+  }, [selectedDate, setSelectedDate])
+  const goToNextDay = useCallback(() => {
+    const d = new Date(selectedDate)
+    d.setDate(d.getDate() + 1)
+    setSelectedDate(d)
+  }, [selectedDate, setSelectedDate])
+  const swipeHandlers = useSwipe({ onSwipeLeft: goToNextDay, onSwipeRight: goToPrevDay })
+
   // ── Medication handlers ──
 
   const resetMedForm = () => {
@@ -355,6 +368,10 @@ export function RecordPage() {
   // ── Intimacy handlers ──
 
   const handleAddIntimacy = async () => {
+    if (intimacyTimeOfDay === null && intimacyProtection === null && !intimacyNote.trim()) {
+      showToast('시간대, 피임 여부, 메모 중 하나 이상 입력해주세요.', 'error')
+      return
+    }
     try {
       await addIntimacy.mutateAsync({
         date: dateStr,
@@ -417,7 +434,7 @@ export function RecordPage() {
           <LazyStatsPage />
         </Suspense>
       ) : (
-      <>
+      <div {...swipeHandlers}>
       {/* Date Selector */}
       <div className="date-selector">
         <button className="date-nav-btn" onClick={() => goToDate(-1)} aria-label="이전 날짜">‹</button>
@@ -439,7 +456,13 @@ export function RecordPage() {
             </button>
           )}
         </div>
-        <button className="date-nav-btn" onClick={() => goToDate(1)} aria-label="다음 날짜">›</button>
+        <button
+          className="date-nav-btn"
+          onClick={() => goToDate(1)}
+          aria-label="다음 날짜"
+          style={differenceInDays(startOfDay(selectedDate), startOfDay(new Date())) >= 0 ? { opacity: 0.35 } : undefined}
+          title={differenceInDays(startOfDay(selectedDate), startOfDay(new Date())) >= 0 ? '미래 날짜' : undefined}
+        >›</button>
       </div>
 
       {/* Period Toggle */}
@@ -571,6 +594,7 @@ export function RecordPage() {
           {notesSaved && <span className="note-status note-status--saved"> ✓ 저장됨</span>}
         </h3>
         <textarea
+          id="record-notes"
           className="notes-input"
           placeholder="오늘의 메모를 남겨보세요... (자동 저장)"
           value={notes}
@@ -880,7 +904,7 @@ export function RecordPage() {
           </button>
         )}
       </div>
-      </>
+      </div>
       )}
     </div>
   )

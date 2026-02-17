@@ -192,9 +192,9 @@ export function CalendarPage() {
     })
   }, [currentMonth, periods, symptoms, prediction, intimacyRecords])
 
-  const handleDayClick = (day: CalendarDay) => {
-    setSelectedDay(selectedDay?.dateStr === day.dateStr ? null : day)
-  }
+  const handleDayClick = useCallback((day: CalendarDay) => {
+    setSelectedDay(prev => prev?.dateStr === day.dateStr ? null : day)
+  }, [])
 
   const handleGoToRecord = () => {
     if (selectedDay) {

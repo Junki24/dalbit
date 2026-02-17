@@ -54,6 +54,7 @@ export const mockUserSettings: UserSettings = {
   notifications_enabled: true,
   health_data_consent: true,
   consent_date: '2025-01-01T00:00:00Z',
+  pregnancy_mode: false,
   created_at: '2025-01-01T00:00:00Z',
   updated_at: '2025-01-01T00:00:00Z',
 }

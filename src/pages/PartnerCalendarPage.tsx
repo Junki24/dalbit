@@ -156,9 +156,9 @@ export function PartnerCalendarPage() {
     return intimacyRecords.filter((r) => r.date === selectedDay.dateStr)
   }, [selectedDay, intimacyRecords])
 
-  const handleDayClick = (day: PartnerCalendarDay) => {
-    setSelectedDay(selectedDay?.dateStr === day.dateStr ? null : day)
-  }
+  const handleDayClick = useCallback((day: PartnerCalendarDay) => {
+    setSelectedDay(prev => prev?.dateStr === day.dateStr ? null : day)
+  }, [])
 
   const handleGoToRecord = () => {
     if (selectedDay) {

@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { differenceInDays, format, parseISO, subMonths, startOfMonth } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 import { usePartnerData } from '@/hooks/usePartnerData'
 import { useIntimacy } from '@/hooks/useIntimacy'
+import { useAuth } from '@/contexts/AuthContext'
+import { useHaptic } from '@/hooks/useHaptic'
 import { getCycleDay, getCyclePhaseInfo, isDateInFertileWindow } from '@/lib/cycle'
 import { PROTECTION_METHOD_LABELS } from '@/types'
 import type { CyclePhase, ProtectionMethod } from '@/types'
@@ -26,10 +28,12 @@ function getProtectionLabel(key: string): string {
 
 export function CouplesDashboardPage() {
   const navigate = useNavigate()
+  const { userSettings, updateUserSettings } = useAuth()
+  const { vibrate } = useHaptic()
   const { isLinked, isLoading, partnerName, partnerData } = usePartnerData()
   const partnerOwnerId = partnerData?.ownerSettings?.user_id
   const { records: intimacyRecords, isLoading: intimacyLoading } = useIntimacy(undefined, partnerOwnerId ?? undefined)
-  const [pregnancyMode, setPregnancyMode] = useState(false)
+  const pregnancyMode = userSettings?.pregnancy_mode ?? false
 
   const prediction = partnerData?.prediction ?? null
   const cycleDay = partnerData?.cycleDay ?? null
@@ -281,9 +285,9 @@ export function CouplesDashboardPage() {
       </section>
 
       {/* 4. Protection Stats */}
-      {protectionStats.length > 0 && (
-        <section className="cd-section">
-          <h3 className="cd-section-title">🛡️ 피임 통계</h3>
+      <section className="cd-section">
+        <h3 className="cd-section-title">🛡️ 피임 통계</h3>
+        {protectionStats.length > 0 ? (
           <div className="cd-protection-bars">
             {protectionStats.map(s => (
               <div key={s.key} className="cd-prot-row">
@@ -299,8 +303,12 @@ export function CouplesDashboardPage() {
               </div>
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', textAlign: 'center', padding: '16px 0' }}>
+            관계 기록에 피임 정보를 추가하면 통계가 표시됩니다.
+          </p>
+        )}
+      </section>
 
       {/* 5. Pregnancy Planning */}
       <section className={`cd-section${pregnancyMode ? ' cd-section--pregnancy' : ''}`}>
@@ -310,7 +318,7 @@ export function CouplesDashboardPage() {
           </h3>
           <button
             className={`cd-toggle${pregnancyMode ? ' cd-toggle--on' : ''}`}
-            onClick={() => setPregnancyMode(v => !v)}
+            onClick={() => { updateUserSettings({ pregnancy_mode: !pregnancyMode }); vibrate('light') }}
             role="switch"
             aria-checked={pregnancyMode}
             aria-label="임신 계획 모드 토글"

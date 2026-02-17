@@ -39,6 +39,7 @@ export interface UserSettings {
   notifications_enabled: boolean
   health_data_consent: boolean
   consent_date: string | null
+  pregnancy_mode: boolean
   created_at: string
   updated_at: string
 }

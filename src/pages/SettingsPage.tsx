@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
@@ -7,8 +7,11 @@ import { useNotifications } from '@/hooks/useNotifications'
 import { usePeriods } from '@/hooks/usePeriods'
 import { useSymptoms } from '@/hooks/useSymptoms'
 import { useMedications, useMedicationIntakes } from '@/hooks/useMedications'
+import { useHaptic } from '@/hooks/useHaptic'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
-import { MigrationSection } from '@/components/MigrationSection'
+import { SettingsNotifications } from '@/components/settings/SettingsNotifications'
+import { SettingsPartnerSharing } from '@/components/settings/SettingsPartnerSharing'
+import { SettingsDataManagement } from '@/components/settings/SettingsDataManagement'
 import './SettingsPage.css'
 
 export function SettingsPage() {
@@ -27,11 +30,10 @@ export function SettingsPage() {
   const [inviteCode, setInviteCode] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [showCopied, setShowCopied] = useState(false)
-  const [importing, setImporting] = useState(false)
   const [devCommentOpen, setDevCommentOpen] = useState(false)
   const [guideOpen, setGuideOpen] = useState(periods.length === 0)
   const [shareResult, setShareResult] = useState<'copied' | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { vibrate } = useHaptic()
   const isMale = userSettings?.gender === 'male'
 
   const handleSaveSettings = async () => {
@@ -43,49 +45,7 @@ export function SettingsPage() {
       prediction_months: predictionMonths,
     })
     setSaving(false)
-  }
-
-  const handleExportData = async () => {
-    // 내보내기에는 soft-deleted 포함 — 완전한 백업
-    let allPeriods = periods
-    if (user && isSupabaseConfigured) {
-      const { data } = await supabase
-        .from('periods')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('start_date', { ascending: false })
-      if (data) allPeriods = data
-    }
-
-    // Fetch all medication intakes (not just today's)
-    let allIntakes = medicationIntakes
-    if (user && isSupabaseConfigured) {
-      const { data } = await supabase
-        .from('medication_intakes')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('taken_at', { ascending: false })
-      if (data) allIntakes = data
-    }
-
-    const exportData = {
-      exported_at: new Date().toISOString(),
-      user_email: user?.email,
-      settings: userSettings,
-      periods: allPeriods,
-      symptoms,
-      medications,
-      medication_intakes: allIntakes,
-    }
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-      type: 'application/json',
-    })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `dalbit-export-${new Date().toISOString().slice(0, 10)}.json`
-    a.click()
-    URL.revokeObjectURL(url)
+    vibrate('success')
   }
 
   const handleGenerateInvite = async () => {
@@ -115,6 +75,7 @@ export function SettingsPage() {
 
       setInviteCode(code)
       showToast('초대 링크가 생성되었습니다!', 'success')
+      vibrate('success')
     } catch (err) {
       console.error('[달빛] 초대 코드 생성 오류:', err)
       showToast('오류가 발생했습니다.', 'error')
@@ -152,130 +113,11 @@ export function SettingsPage() {
         supabase.from('partner_sharing').delete().eq('owner_id', user.id),
       ])
       showToast('모든 데이터가 삭제되었습니다.', 'success')
+      vibrate('heavy')
       setTimeout(() => window.location.reload(), 1500)
     } catch (err) {
       console.error('데이터 삭제 오류:', err)
       showToast('삭제 중 오류가 발생했습니다.', 'error')
-    }
-  }
-
-  const handleImportData = async () => {
-    const file = fileInputRef.current?.files?.[0]
-    if (!file || !user || !isSupabaseConfigured) return
-
-    setImporting(true)
-    try {
-      const text = await file.text()
-      const data = JSON.parse(text)
-
-      // Validate structure
-      if (!data.periods && !data.symptoms && !data.settings && !data.medications) {
-        showToast('올바른 달빛 백업 파일이 아닙니다.', 'error')
-        return
-      }
-
-      const confirmed = await confirm({
-        title: '📤 데이터 복원',
-        message: `다음 데이터를 복원합니다:\n\n• 생리 기록: ${data.periods?.length ?? 0}건\n• 증상 기록: ${data.symptoms?.length ?? 0}건\n• 약 정보: ${data.medications?.length ?? 0}건\n• 복용 기록: ${data.medication_intakes?.length ?? 0}건\n${data.settings ? '• 설정 정보 포함' : ''}\n\n기존 데이터와 병합됩니다.`,
-        confirmText: '복원',
-        cancelText: '취소',
-      })
-      if (!confirmed) return
-
-      let importedCount = 0
-
-      // Import periods
-      if (data.periods?.length > 0) {
-        const periodsToImport = data.periods.map((p: Record<string, unknown>) => ({
-          id: p.id,
-          user_id: user.id,
-          start_date: p.start_date,
-          end_date: p.end_date ?? null,
-          flow_intensity: p.flow_intensity ?? null,
-          flow_intensities: (p.flow_intensities as Record<string, string>) ?? {},
-          deleted_at: p.deleted_at ?? null,
-        }))
-        const { error } = await supabase
-          .from('periods')
-          .upsert(periodsToImport, { onConflict: 'id' })
-        if (!error) importedCount += periodsToImport.length
-      }
-
-      // Import symptoms
-      if (data.symptoms?.length > 0) {
-        const symptomsToImport = data.symptoms.map((s: Record<string, unknown>) => ({
-          id: s.id,
-          user_id: user.id,
-          date: s.date,
-          symptom_type: s.symptom_type,
-          severity: s.severity ?? 3,
-          notes: s.notes ?? null,
-        }))
-        const { error } = await supabase
-          .from('symptoms')
-          .upsert(symptomsToImport, { onConflict: 'id' })
-        if (!error) importedCount += symptomsToImport.length
-      }
-
-      // Import medications
-      if (data.medications?.length > 0) {
-        const medsToImport = data.medications.map((m: Record<string, unknown>) => ({
-          id: m.id,
-          user_id: user.id,
-          name: m.name,
-          type: m.type ?? 'otc',
-          form: m.form ?? null,
-          strength: m.strength ?? null,
-          hospital: m.hospital ?? null,
-          doctor: m.doctor ?? null,
-          prescribed_date: m.prescribed_date ?? null,
-          prescription_notes: m.prescription_notes ?? null,
-          prescription_days: m.prescription_days ?? null,
-          notes: m.notes ?? null,
-          is_active: m.is_active ?? true,
-        }))
-        const { error } = await supabase
-          .from('medications')
-          .upsert(medsToImport, { onConflict: 'id' })
-        if (!error) importedCount += medsToImport.length
-      }
-
-      // Import medication intakes
-      if (data.medication_intakes?.length > 0) {
-        const intakesToImport = data.medication_intakes.map((i: Record<string, unknown>) => ({
-          id: i.id,
-          user_id: user.id,
-          medication_id: i.medication_id ?? null,
-          medication_name: i.medication_name,
-          taken_at: i.taken_at,
-          dosage: i.dosage ?? null,
-          note: i.note ?? null,
-        }))
-        const { error } = await supabase
-          .from('medication_intakes')
-          .upsert(intakesToImport, { onConflict: 'id' })
-        if (!error) importedCount += intakesToImport.length
-      }
-
-      // Import settings
-      if (data.settings) {
-        await updateUserSettings({
-          display_name: data.settings.display_name ?? null,
-          average_cycle_length: data.settings.average_cycle_length ?? 28,
-          average_period_length: data.settings.average_period_length ?? 5,
-          prediction_months: data.settings.prediction_months ?? 3,
-          gender: data.settings.gender ?? 'female',
-        })
-      }
-
-      showToast(`${importedCount}건의 데이터를 복원했습니다.`, 'success')
-      setTimeout(() => window.location.reload(), 1500)
-    } catch (err) {
-      console.error('데이터 복원 오류:', err)
-      showToast('파일을 읽는 중 오류가 발생했습니다. JSON 형식을 확인해주세요.', 'error')
-    } finally {
-      setImporting(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -377,8 +219,9 @@ export function SettingsPage() {
           <span className="settings-value">{user?.email ?? '-'}</span>
         </div>
         <div className="settings-field">
-          <label>표시 이름</label>
+          <label htmlFor="settings-display-name">표시 이름</label>
           <input
+            id="settings-display-name"
             type="text"
             className="form-input"
             value={displayName}
@@ -388,9 +231,12 @@ export function SettingsPage() {
         </div>
         <div className="settings-field">
           <label>사용 모드</label>
-          <div className="gender-mode-toggle">
+          <div className="gender-mode-toggle" role="radiogroup" aria-label="사용 모드 선택">
             <button
               className={`gender-mode-btn ${!isMale ? 'gender-mode-btn--active' : ''}`}
+              role="radio"
+              aria-checked={!isMale}
+              aria-label="여성 모드"
               onClick={async () => {
                 if (isMale) {
                   const ok = await confirm({
@@ -411,6 +257,9 @@ export function SettingsPage() {
             </button>
             <button
               className={`gender-mode-btn ${isMale ? 'gender-mode-btn--active' : ''}`}
+              role="radio"
+              aria-checked={isMale}
+              aria-label="남성 모드"
               onClick={async () => {
                 if (!isMale) {
                   const ok = await confirm({
@@ -614,160 +463,41 @@ export function SettingsPage() {
       </div>
 
       {/* Notifications */}
-      <div className="settings-section">
-        <h3 className="settings-section-title">🔔 알림</h3>
-        <div className="settings-field">
-          <label>기록 리마인더</label>
-          {!isSupported ? (
-            <span className="settings-value">미지원 브라우저</span>
-          ) : permission === 'granted' ? (
-            <button
-              className="theme-toggle"
-              onClick={async () => {
-                const enabled = !userSettings?.notifications_enabled
-                await updateUserSettings({ notifications_enabled: enabled })
-                showToast(enabled ? '알림이 활성화되었습니다.' : '알림이 비활성화되었습니다.', 'success')
-              }}
-            >
-              <span className={`theme-toggle-track ${userSettings?.notifications_enabled ? 'theme-toggle-track--active' : ''}`}>
-                <span className="theme-toggle-thumb" />
-              </span>
-            </button>
-          ) : permission === 'denied' ? (
-            <span className="settings-value">알림 차단됨</span>
-          ) : (
-            <button
-              className="btn-invite"
-              style={{ width: 'auto', padding: '8px 16px', fontSize: '0.8rem' }}
-              onClick={async () => {
-                const granted = await requestPermission()
-                if (granted) {
-                  await updateUserSettings({ notifications_enabled: true })
-                  await subscribeToPush()
-                  showToast('알림이 활성화되었습니다!', 'success')
-                } else {
-                  showToast('알림 권한이 거부되었습니다.', 'error')
-                }
-              }}
-            >
-              알림 허용
-            </button>
-           )}
-         </div>
-         {permission === 'granted' && userSettings?.notifications_enabled && (
-           <>
-             <button
-               className="btn-export"
-               onClick={handleTestNotification}
-               style={{ marginTop: '8px' }}
-             >
-               🔔 테스트 알림 보내기
-             </button>
-             {user?.email === 'junki7051@gmail.com' && (
-                <>
-                  <button
-                    className="btn-export"
-                    onClick={handleServerPushTest}
-                    style={{ marginTop: '8px' }}
-                  >
-                    🚀 서버 푸시 테스트
-                  </button>
-                  <Link to="/admin" className="btn-export" style={{ marginTop: '8px', display: 'block', textAlign: 'center', textDecoration: 'none' }}>
-                    🛡️ 관리자 대시보드
-                  </Link>
-                </>
-              )}
-           </>
-         )}
-         <p className="settings-hint">
-           매일 저녁 9시에 주기 상태에 맞는 스마트 알림을 받습니다.
-           앱을 닫아도 알림이 도착합니다.
-         </p>
-       </div>
+      <SettingsNotifications
+        user={user}
+        userSettings={userSettings}
+        updateUserSettings={updateUserSettings}
+        showToast={showToast}
+        isSupported={isSupported}
+        permission={permission}
+        requestPermission={requestPermission}
+        subscribeToPush={subscribeToPush}
+        onTestNotification={handleTestNotification}
+        onServerPushTest={handleServerPushTest}
+      />
 
       {/* Partner Sharing */}
-      <div className="settings-section">
-        <h3 className="settings-section-title">💑 {isMale ? '파트너 연결' : '파트너 공유'}</h3>
-        {isMale ? (
-          <>
-            <p className="settings-desc">
-              파트너에게 초대 링크를 보내거나, 파트너로부터 링크를 받아 연결할 수 있어요.
-            </p>
-            {inviteCode ? (
-              <div className="invite-result">
-                <span className="invite-code">{inviteCode}</span>
-                <button className="btn-copy" onClick={handleCopyInvite}>
-                  {showCopied ? '복사됨! ✓' : '링크 복사'}
-                </button>
-              </div>
-            ) : (
-              <button className="btn-invite" onClick={handleGenerateInvite}>
-                초대 링크 생성
-              </button>
-            )}
-            <Link to="/" className="btn-partner-view">
-              💑 파트너 페이지 보기
-            </Link>
-          </>
-        ) : (
-          <>
-            <p className="settings-desc">
-              파트너에게 초대 링크를 보내면 읽기 전용으로 주기 정보를 공유할 수 있어요.
-            </p>
-            {inviteCode ? (
-              <div className="invite-result">
-                <span className="invite-code">{inviteCode}</span>
-                <button className="btn-copy" onClick={handleCopyInvite}>
-                  {showCopied ? '복사됨! ✓' : '링크 복사'}
-                </button>
-              </div>
-            ) : (
-              <button className="btn-invite" onClick={handleGenerateInvite}>
-                초대 링크 생성
-              </button>
-            )}
-            <Link to="/partner" className="btn-partner-view">
-              💑 파트너 페이지 보기
-            </Link>
-          </>
-        )}
-      </div>
+      <SettingsPartnerSharing
+        isMale={isMale}
+        inviteCode={inviteCode}
+        showCopied={showCopied}
+        onGenerateInvite={handleGenerateInvite}
+        onCopyInvite={handleCopyInvite}
+      />
 
       {/* Data (female only) */}
       {!isMale && (
-      <>
-      <div className="settings-section">
-        <h3 className="settings-section-title">📦 데이터 관리</h3>
-        <button className="btn-export" onClick={handleExportData}>
-          📥 내 데이터 다운로드 (JSON)
-        </button>
-        <p className="settings-hint">
-          기록된 모든 생리주기, 증상, 설정 데이터를 JSON 파일로 내보냅니다.
-        </p>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".json"
-          onChange={handleImportData}
-          style={{ display: 'none' }}
-          aria-label="데이터 복원 파일 선택"
+        <SettingsDataManagement
+          user={user}
+          userSettings={userSettings}
+          updateUserSettings={updateUserSettings}
+          showToast={showToast}
+          confirm={confirm}
+          periods={periods}
+          symptoms={symptoms}
+          medications={medications}
+          medicationIntakes={medicationIntakes}
         />
-        <button
-          className="btn-import"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={importing}
-        >
-          {importing ? '복원 중...' : '📤 데이터 복원 (JSON)'}
-        </button>
-        <p className="settings-hint">
-          이전에 내보낸 JSON 백업 파일에서 데이터를 복원합니다.
-        </p>
-      </div>
-
-      {/* Migration from other apps */}
-      <MigrationSection />
-      </>
       )}
 
       {/* Privacy */}

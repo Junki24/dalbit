@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, memo } from 'react'
 import { differenceInDays, format, parseISO, subDays } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useQuery } from '@tanstack/react-query'
@@ -17,11 +17,77 @@ function getDDayColor(days: number | null): string {
   return '#22c55e'
 }
 
+/* ── Memo'd sub-components to prevent animation restart on re-render ── */
+
+const PartnerDDayRow = memo(function PartnerDDayRow({
+  daysUntilNextPeriod,
+  daysUntilOvulation,
+}: {
+  daysUntilNextPeriod: number | null
+  daysUntilOvulation: number | null
+}) {
+  return (
+    <div className="partner-dday-row">
+      <div
+        className="partner-dday"
+        style={{ '--dday-accent': getDDayColor(daysUntilNextPeriod) } as React.CSSProperties}
+      >
+        <span className="partner-dday-icon">🩸</span>
+        <span className="partner-dday-text">
+          {daysUntilNextPeriod !== null && daysUntilNextPeriod >= 0
+            ? `D-${daysUntilNextPeriod} 다음 생리까지`
+            : '예측 기간 지남'}
+        </span>
+      </div>
+      <div className="partner-dday partner-dday--ovulation">
+        <span className="partner-dday-icon">🥚</span>
+        <span className="partner-dday-text">
+          {daysUntilOvulation !== null && daysUntilOvulation >= 0
+            ? `배란일 D-${daysUntilOvulation}`
+            : '배란 예측 없음'}
+        </span>
+      </div>
+    </div>
+  )
+})
+
+const PartnerCycleCircle = memo(function PartnerCycleCircle({
+  cycleDay,
+  phaseColor,
+}: {
+  cycleDay: number | null
+  phaseColor: string
+}) {
+  return (
+    <div className="partner-cycle-circle">
+      <div
+        className="partner-circle-inner"
+        style={{ borderColor: phaseColor }}
+      >
+        {cycleDay ? (
+          <>
+            <span className="partner-day-number">{cycleDay}</span>
+            <span className="partner-day-label">일째</span>
+          </>
+        ) : (
+          <>
+            <span className="partner-day-number">?</span>
+            <span className="partner-day-label">데이터 없음</span>
+          </>
+        )}
+      </div>
+    </div>
+  )
+})
+
 export function PartnerPage() {
-  const { user } = useAuth()
+  const { user, userSettings, updateUserSettings } = useAuth()
   const navigate = useNavigate()
   const { isLinked, isLoading, partnerName, partnerData } = usePartnerData()
-  const [showPregnancyBanner, setShowPregnancyBanner] = useState(false)
+  const showPregnancyBanner = userSettings?.pregnancy_mode ?? false
+  const togglePregnancyBanner = useCallback(() => {
+    updateUserSettings({ pregnancy_mode: !showPregnancyBanner })
+  }, [showPregnancyBanner, updateUserSettings])
 
   // Derive all values BEFORE conditional returns (React Rules of Hooks)
   const partnerPeriods = partnerData?.periods ?? []
@@ -110,8 +176,8 @@ export function PartnerPage() {
     )
   }
 
-  // (A) Rich empty state with onboarding
-  if (!isLinked || !partnerData) {
+  // (A) Not linked — onboarding steps
+  if (!isLinked) {
     return (
       <div className="partner-page">
         <div className="partner-empty">
@@ -154,6 +220,25 @@ export function PartnerPage() {
     )
   }
 
+  // (A-2) Linked but partner data unavailable
+  if (!partnerData) {
+    return (
+      <div className="partner-page">
+        <div className="partner-empty">
+          <span className="partner-empty-icon">⚠️</span>
+          <h2>파트너 데이터를 불러올 수 없어요</h2>
+          <p>파트너가 아직 주기 데이터를 입력하지 않았거나<br />일시적인 연결 문제일 수 있어요.</p>
+          <button
+            className="partner-empty-btn"
+            onClick={() => window.location.reload()}
+          >
+            다시 시도하기
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // Derived values for linked state
   const currentPhase = phaseInfo?.phase
   const careTips = currentPhase ? PARTNER_CARE_TIPS[currentPhase] : []
@@ -182,47 +267,10 @@ export function PartnerPage() {
       </div>
 
       {/* (B) D-Day Counters — above cycle circle */}
-      <div className="partner-dday-row">
-        <div
-          className="partner-dday"
-          style={{ '--dday-accent': getDDayColor(daysUntilNextPeriod) } as React.CSSProperties}
-        >
-          <span className="partner-dday-icon">🩸</span>
-          <span className="partner-dday-text">
-            {daysUntilNextPeriod !== null && daysUntilNextPeriod >= 0
-              ? `D-${daysUntilNextPeriod} 다음 생리까지`
-              : '예측 기간 지남'}
-          </span>
-        </div>
-        <div className="partner-dday partner-dday--ovulation">
-          <span className="partner-dday-icon">🥚</span>
-          <span className="partner-dday-text">
-            {daysUntilOvulation !== null && daysUntilOvulation >= 0
-              ? `배란일 D-${daysUntilOvulation}`
-              : '배란 예측 없음'}
-          </span>
-        </div>
-      </div>
+      <PartnerDDayRow daysUntilNextPeriod={daysUntilNextPeriod} daysUntilOvulation={daysUntilOvulation} />
 
       {/* Cycle Day Circle */}
-      <div className="partner-cycle-circle">
-        <div
-          className="partner-circle-inner"
-          style={{ borderColor: phaseInfo?.color ?? 'var(--color-primary)' }}
-        >
-          {cycleDay ? (
-            <>
-              <span className="partner-day-number">{cycleDay}</span>
-              <span className="partner-day-label">일째</span>
-            </>
-          ) : (
-            <>
-              <span className="partner-day-number">?</span>
-              <span className="partner-day-label">데이터 없음</span>
-            </>
-          )}
-        </div>
-      </div>
+      <PartnerCycleCircle cycleDay={cycleDay} phaseColor={phaseInfo?.color ?? 'var(--color-primary)'} />
 
       {/* Phase Info */}
       {phaseInfo && (
@@ -338,7 +386,7 @@ export function PartnerPage() {
       <div className="partner-pregnancy-section">
         <button
           className={`partner-pregnancy-toggle${showPregnancyBanner ? ' partner-pregnancy-toggle--active' : ''}`}
-          onClick={() => setShowPregnancyBanner(v => !v)}
+          onClick={togglePregnancyBanner}
           role="switch"
           aria-checked={showPregnancyBanner}
           aria-label="임신 계획 모드 토글"
