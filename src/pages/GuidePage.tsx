@@ -323,10 +323,7 @@ function MockPartnerCalendar() {
   return (
     <PhoneMockup>
       <div className="mock-calendar mock-partner-cal">
-        <div className="mock-cal-back-header">
-          <span className="mock-back-arrow">← 뒤로</span>
-          <span className="mock-cal-header-text">파트너 주기 캘린더</span>
-        </div>
+        <div className="mock-cal-header">파트너 주기 캘린더</div>
         <div className="mock-cal-days">
           {dayNames.map((d) => (
             <div key={d} className="mock-cal-day-name">{d}</div>
@@ -370,10 +367,7 @@ function MockPartnerRecord() {
   return (
     <PhoneMockup>
       <div className="mock-partner-record">
-        <div className="mock-pr-header">
-          <span className="mock-back-arrow">← 뒤로</span>
-          <span className="mock-pr-title">관계 기록</span>
-        </div>
+        <div className="mock-pr-title-only">관계 기록</div>
         <div className="mock-record-date-nav">
           <span className="mock-date-arrow">‹</span>
           <span className="mock-record-date">2월 15일 (토)</span>
