@@ -47,6 +47,7 @@ interface Period {
 interface UserSettings {
   user_id: string
   display_name: string | null
+  gender: 'female' | 'male'
   average_cycle_length: number
   notifications_enabled: boolean
 }
@@ -219,10 +220,12 @@ serve(async (req) => {
     const errors: string[] = []
 
     // 1. Get users with notifications enabled (filtered for test mode)
+    // 남성 유저는 생리주기 알림 대상에서 제외
     let usersQuery = supabase
       .from('user_settings')
-      .select('user_id, display_name, average_cycle_length, notifications_enabled')
+      .select('user_id, display_name, gender, average_cycle_length, notifications_enabled')
       .eq('notifications_enabled', true)
+      .eq('gender', 'female')
 
     if (filterUserId) {
       usersQuery = usersQuery.eq('user_id', filterUserId)
