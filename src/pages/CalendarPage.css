@@ -344,11 +344,13 @@
 
 /* Intimacy */
 .calendar-day-dot--intimacy {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #a855f7;
-  box-shadow: 0 0 4px rgba(168, 85, 247, 0.5);
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 0.5rem;
+  line-height: 1;
 }
 
 .legend-dot--intimacy {
