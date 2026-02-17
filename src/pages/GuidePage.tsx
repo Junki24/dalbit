@@ -56,24 +56,28 @@ function MockHome() {
       <div className="mock-home">
         <div className="mock-cycle-ring">
           <div className="mock-cycle-inner">
-            <div className="mock-cycle-day">D-14</div>
-            <div className="mock-cycle-label">다음 생리까지</div>
+            <div className="mock-cycle-day">15</div>
+            <div className="mock-cycle-label">일째</div>
           </div>
         </div>
-        <div className="mock-phase-badge">황체기</div>
-        <div className="mock-insight-row">
-          <div className="mock-insight-card">
-            <div className="ic-val">28일</div>
-            <div className="ic-lbl">평균 주기</div>
-          </div>
-          <div className="mock-insight-card">
-            <div className="ic-val">5일</div>
-            <div className="ic-lbl">평균 기간</div>
-          </div>
-          <div className="mock-insight-card">
-            <div className="ic-val">😊</div>
-            <div className="ic-lbl">컨디션</div>
-          </div>
+        <div className="mock-phase-card">
+          <span className="mock-phase-name">황체기</span>
+          <span className="mock-phase-desc">호르몬 변화가 시작되는 시기</span>
+          <p className="mock-phase-tip">💡 PMS 증상이 나타날 수 있어요</p>
+        </div>
+        <div className="mock-weekly-strip">
+          {['일','월','화','수','목','금','토'].map((d,i) => (
+            <div key={d} className={`mock-weekly-day${i === 3 ? ' mock-weekly-day--today' : ''}`}>
+              <span className="mock-weekly-name">{d}</span>
+              <span className="mock-weekly-num">{12+i}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mock-prediction-grid">
+          <div className="mock-pred-card"><span className="mock-pred-icon">🩸</span><span className="mock-pred-label">다음 생리</span><span className="mock-pred-val">14일 후</span></div>
+          <div className="mock-pred-card"><span className="mock-pred-icon">🥚</span><span className="mock-pred-label">배란 예정일</span><span className="mock-pred-val">2월 28일</span></div>
+          <div className="mock-pred-card"><span className="mock-pred-icon">💫</span><span className="mock-pred-label">가임기</span><span className="mock-pred-val">2/24 ~ 2/28</span></div>
+          <div className="mock-pred-card"><span className="mock-pred-icon">📏</span><span className="mock-pred-label">평균 주기</span><span className="mock-pred-val">28일</span></div>
         </div>
       </div>
     </PhoneMockup>
@@ -83,15 +87,15 @@ function MockHome() {
 /* ── Mockup: Calendar ── */
 function MockCalendar() {
   const dayNames = ['일', '월', '화', '수', '목', '금', '토']
-  // Simulated month with period (5-9), fertile (16-20), ovulation (18)
-  const cells: { day: number; type?: string }[] = []
+  const intimacyDays = [12, 22]
+  const cells: { day: number; type?: string; heart?: boolean }[] = []
   for (let i = 1; i <= 28; i++) {
     let type = ''
     if (i >= 5 && i <= 9) type = 'period'
     else if (i === 18) type = 'ovulation'
     else if (i >= 16 && i <= 20) type = 'fertile'
     else if (i === 15) type = 'today'
-    cells.push({ day: i, type })
+    cells.push({ day: i, type, heart: intimacyDays.includes(i) })
   }
 
   return (
@@ -102,14 +106,14 @@ function MockCalendar() {
           {dayNames.map((d) => (
             <div key={d} className="mock-cal-day-name">{d}</div>
           ))}
-          {/* Empty cells for offset (Feb starts on Sun) */}
           <div />
           {cells.map((c) => (
             <div
               key={c.day}
-              className={`mock-cal-cell${c.type ? ` mock-cal-cell--${c.type}` : ''}`}
+              className={`mock-cal-cell${c.type ? ` mock-cal-cell--${c.type}` : ''}${c.heart ? ' mock-cal-cell--heart' : ''}`}
             >
               {c.day}
+              {c.heart && <span className="mock-cal-heart">💚</span>}
             </div>
           ))}
         </div>
@@ -126,6 +130,10 @@ function MockCalendar() {
             <div className="mock-legend-dot mock-legend-dot--ovulation" />
             <span>배란일</span>
           </div>
+          <div className="mock-legend-item">
+            <span className="mock-legend-heart">💚</span>
+            <span>관계</span>
+          </div>
         </div>
       </div>
     </PhoneMockup>
@@ -137,24 +145,36 @@ function MockRecord() {
   return (
     <PhoneMockup>
       <div className="mock-record">
-        <div className="mock-record-date">2월 15일 (토)</div>
+        <div className="mock-rec-tabs">
+          <span className="mock-rec-tab mock-rec-tab--active">✏️ 기록</span>
+          <span className="mock-rec-tab">📊 통계</span>
+        </div>
+        <div className="mock-record-date-nav">
+          <span className="mock-date-arrow">‹</span>
+          <span className="mock-record-date">2월 15일 (토)</span>
+          <span className="mock-today-badge">오늘</span>
+          <span className="mock-date-arrow">›</span>
+        </div>
         <div className="mock-record-group">
-          <div className="mock-record-label">🩸 생리</div>
-          <div className="mock-flow-dots">
-            <div className="mock-flow-dot mock-flow-dot--filled" />
-            <div className="mock-flow-dot mock-flow-dot--filled" />
-            <div className="mock-flow-dot mock-flow-dot--filled" />
-            <div className="mock-flow-dot" />
-            <div className="mock-flow-dot" />
+          <div className="mock-record-label">🩸 생리 기록</div>
+          <div className="mock-record-toggles">
+            <span className="mock-toggle mock-toggle--active">생리 시작</span>
           </div>
         </div>
         <div className="mock-record-group">
-          <div className="mock-record-label">😣 증상</div>
+          <div className="mock-record-label">📝 증상 기록</div>
+          <div className="mock-record-sub-label">신체 증상</div>
           <div className="mock-record-toggles">
             <span className="mock-toggle mock-toggle--symptom">복통</span>
             <span className="mock-toggle mock-toggle--symptom">두통</span>
             <span className="mock-toggle">피로</span>
             <span className="mock-toggle">부종</span>
+          </div>
+          <div className="mock-record-sub-label">기분</div>
+          <div className="mock-record-toggles">
+            <span className="mock-toggle mock-toggle--active">😊 좋음</span>
+            <span className="mock-toggle">😐 보통</span>
+            <span className="mock-toggle">😢 우울</span>
           </div>
         </div>
         <div className="mock-record-group">
@@ -171,7 +191,6 @@ function MockRecord() {
 
 /* ── Mockup: Stats ── */
 function MockStats() {
-  const barHeights = [65, 80, 70, 85, 75, 90, 72]
   return (
     <PhoneMockup>
       <div className="mock-stats">
@@ -185,16 +204,26 @@ function MockStats() {
             <div className="mock-stat-lbl">평균 기간</div>
           </div>
           <div className="mock-stat-card">
-            <div className="mock-stat-val">복통</div>
-            <div className="mock-stat-lbl">최다 증상</div>
-          </div>
-          <div className="mock-stat-card">
             <div className="mock-stat-val">±2.1</div>
             <div className="mock-stat-lbl">주기 편차</div>
           </div>
+          <div className="mock-stat-card">
+            <div className="mock-stat-val">복통</div>
+            <div className="mock-stat-lbl">최다 증상</div>
+          </div>
+        </div>
+        <div className="mock-cycle-history">
+          <div className="mock-history-title">📋 주기 이력</div>
+          {[{ m: '1월', len: '28일', dur: '5일' }, { m: '12월', len: '27일', dur: '4일' }, { m: '11월', len: '29일', dur: '5일' }].map((c) => (
+            <div key={c.m} className="mock-history-row">
+              <span className="mock-history-month">{c.m}</span>
+              <span className="mock-history-bar" />
+              <span className="mock-history-detail">{c.len} / {c.dur}</span>
+            </div>
+          ))}
         </div>
         <div className="mock-chart-bars">
-          {barHeights.map((h, i) => (
+          {[65, 80, 70, 85, 75, 90, 72].map((h, i) => (
             <div key={i} className="mock-chart-bar" style={{ height: `${h}%` }} />
           ))}
         </div>
@@ -208,31 +237,30 @@ function MockRecommend() {
   return (
     <PhoneMockup>
       <div className="mock-recommend">
-        <div className="mock-rec-title">🎯 맞춤 추천</div>
-        <div className="mock-rec-card">
-          <div className="mock-rec-img">🌡️</div>
-          <div className="mock-rec-info">
-            <div className="mock-rec-name">핫팩 (허리용)</div>
-            <div className="mock-rec-desc">생리통 완화에 도움</div>
-          </div>
-          <div className="mock-rec-price">₩8,900</div>
+        <div className="mock-rec-header">
+          <span>🎁</span>
+          <span>제품 추천 설문</span>
         </div>
-        <div className="mock-rec-card">
-          <div className="mock-rec-img">🍫</div>
-          <div className="mock-rec-info">
-            <div className="mock-rec-name">다크 초콜릿</div>
-            <div className="mock-rec-desc">마그네슘 보충</div>
+        <div className="mock-survey-step">
+          <div className="mock-survey-num">1</div>
+          <span className="mock-survey-q">어떤 제품을 사용하세요?</span>
+          <div className="mock-survey-options">
+            <span className="mock-survey-btn mock-survey-btn--active">생리대</span>
+            <span className="mock-survey-btn">탐폰</span>
+            <span className="mock-survey-btn">면생리대</span>
+            <span className="mock-survey-btn">생리컵</span>
           </div>
-          <div className="mock-rec-price">₩5,500</div>
         </div>
-        <div className="mock-rec-card">
-          <div className="mock-rec-img">🧘</div>
-          <div className="mock-rec-info">
-            <div className="mock-rec-name">요가 스트레칭</div>
-            <div className="mock-rec-desc">하복부 이완 운동</div>
+        <div className="mock-survey-step">
+          <div className="mock-survey-num">2</div>
+          <span className="mock-survey-q">피부 민감도는?</span>
+          <div className="mock-survey-options">
+            <span className="mock-survey-btn">둔감</span>
+            <span className="mock-survey-btn mock-survey-btn--active">보통</span>
+            <span className="mock-survey-btn">민감</span>
           </div>
-          <div className="mock-rec-price">무료</div>
         </div>
+        <div className="mock-submit-btn">추천 받기</div>
       </div>
     </PhoneMockup>
   )
@@ -243,19 +271,37 @@ function MockPartnerHome() {
   return (
     <PhoneMockup>
       <div className="mock-partner-home">
-        <div className="mock-dday-card">
-          <div className="mock-dday-label">파트너 다음 생리까지</div>
-          <div className="mock-dday-value">D-7</div>
-          <div className="mock-dday-sub">현재: 황체기</div>
+        <div className="mock-partner-header">
+          <span className="mock-partner-avatar">💑</span>
+          <span className="mock-partner-title">파트너의 주기</span>
         </div>
-        <div className="mock-tip-card">
-          <div className="mock-tip-title">💡 오늘의 행동 요령</div>
-          <div className="mock-tip-text">생리 전 증후군(PMS)이 시작될 수 있어요. 따뜻한 음료를 준비해주세요.</div>
+        <div className="mock-dday-row">
+          <div className="mock-dday-mini">
+            <span className="mock-dday-emoji">🩸</span>
+            <span className="mock-dday-val">D-7</span>
+            <span className="mock-dday-desc">다음 생리까지</span>
+          </div>
+          <div className="mock-dday-mini">
+            <span className="mock-dday-emoji">🥚</span>
+            <span className="mock-dday-val">D-14</span>
+            <span className="mock-dday-desc">배란일</span>
+          </div>
         </div>
-        <div className="mock-symptom-summary">
-          <span className="mock-symptom-chip">복통 😣</span>
-          <span className="mock-symptom-chip">피로 😴</span>
-          <span className="mock-symptom-chip">예민 😤</span>
+        <div className="mock-cycle-ring mock-cycle-ring--small">
+          <div className="mock-cycle-inner">
+            <div className="mock-cycle-day">21</div>
+            <div className="mock-cycle-label">일째</div>
+          </div>
+        </div>
+        <div className="mock-phase-card">
+          <span className="mock-phase-name">황체기</span>
+          <span className="mock-phase-desc">PMS 시작 가능 시기</span>
+          <p className="mock-phase-tip">💡 따뜻한 음료를 준비해주세요</p>
+        </div>
+        <div className="mock-quick-actions">
+          <span className="mock-quick-btn">📝 기록하기</span>
+          <span className="mock-quick-btn">📅 캘린더</span>
+          <span className="mock-quick-btn">💕 커플</span>
         </div>
       </div>
     </PhoneMockup>
@@ -265,18 +311,22 @@ function MockPartnerHome() {
 /* ── Mockup: Partner Calendar ── */
 function MockPartnerCalendar() {
   const dayNames = ['일', '월', '화', '수', '목', '금', '토']
-  const cells: { day: number; type?: string }[] = []
+  const intimacyDays = [12, 22]
+  const cells: { day: number; type?: string; heart?: boolean }[] = []
   for (let i = 1; i <= 28; i++) {
     let type = ''
     if (i >= 5 && i <= 9) type = 'period'
     else if (i === 18) type = 'ovulation'
     else if (i >= 16 && i <= 20) type = 'fertile'
-    cells.push({ day: i, type })
+    cells.push({ day: i, type, heart: intimacyDays.includes(i) })
   }
   return (
     <PhoneMockup>
       <div className="mock-calendar mock-partner-cal">
-        <div className="mock-cal-header">파트너 주기 캘린더</div>
+        <div className="mock-cal-back-header">
+          <span className="mock-back-arrow">← 뒤로</span>
+          <span className="mock-cal-header-text">파트너 주기 캘린더</span>
+        </div>
         <div className="mock-cal-days">
           {dayNames.map((d) => (
             <div key={d} className="mock-cal-day-name">{d}</div>
@@ -285,11 +335,30 @@ function MockPartnerCalendar() {
           {cells.map((c) => (
             <div
               key={c.day}
-              className={`mock-cal-cell${c.type ? ` mock-cal-cell--${c.type}` : ''}`}
+              className={`mock-cal-cell${c.type ? ` mock-cal-cell--${c.type}` : ''}${c.heart ? ' mock-cal-cell--heart' : ''}`}
             >
               {c.day}
+              {c.heart && <span className="mock-cal-heart">💚</span>}
             </div>
           ))}
+        </div>
+        <div className="mock-cal-legend">
+          <div className="mock-legend-item">
+            <div className="mock-legend-dot mock-legend-dot--period" />
+            <span>생리</span>
+          </div>
+          <div className="mock-legend-item">
+            <div className="mock-legend-dot mock-legend-dot--fertile" />
+            <span>가임기</span>
+          </div>
+          <div className="mock-legend-item">
+            <div className="mock-legend-dot mock-legend-dot--ovulation" />
+            <span>배란일</span>
+          </div>
+          <div className="mock-legend-item">
+            <span className="mock-legend-heart">💚</span>
+            <span>관계</span>
+          </div>
         </div>
       </div>
     </PhoneMockup>
@@ -301,23 +370,44 @@ function MockPartnerRecord() {
   return (
     <PhoneMockup>
       <div className="mock-partner-record">
-        <div className="mock-record-date">관계 기록</div>
+        <div className="mock-pr-header">
+          <span className="mock-back-arrow">← 뒤로</span>
+          <span className="mock-pr-title">관계 기록</span>
+        </div>
+        <div className="mock-record-date-nav">
+          <span className="mock-date-arrow">‹</span>
+          <span className="mock-record-date">2월 15일 (토)</span>
+          <span className="mock-today-badge">오늘</span>
+          <span className="mock-date-arrow">›</span>
+        </div>
+        <div className="mock-context-card">
+          <span className="mock-phase-name">황체기</span>
+          <span className="mock-context-text">파트너의 주기</span>
+          <p className="mock-phase-tip">💡 컨디션이 예민할 수 있어요</p>
+        </div>
         <div className="mock-record-group">
-          <div className="mock-record-label">⏰ 시간대</div>
+          <div className="mock-record-label">시간대</div>
           <div className="mock-time-selector">
-            <div className="mock-time-btn">아침</div>
-            <div className="mock-time-btn mock-time-btn--active">오후</div>
-            <div className="mock-time-btn">저녁</div>
-            <div className="mock-time-btn">밤</div>
+            <div className="mock-time-btn">🌅 아침</div>
+            <div className="mock-time-btn mock-time-btn--active">☀️ 오후</div>
+            <div className="mock-time-btn">🌆 저녁</div>
+            <div className="mock-time-btn">🌙 밤</div>
           </div>
         </div>
-        <div className="mock-contra-toggle">
-          <span className="mock-contra-label">🛡️ 피임 여부</span>
-          <div className="mock-mini-toggle" />
+        <div className="mock-record-group">
+          <div className="mock-record-label">피임 여부</div>
+          <div className="mock-contra-row">
+            <div className="mock-mini-toggle" />
+            <div className="mock-record-toggles">
+              <span className="mock-toggle mock-toggle--active">콘돔</span>
+              <span className="mock-toggle">피임약</span>
+            </div>
+          </div>
         </div>
         <div className="mock-memo-area">
           <span className="mock-memo-placeholder">📝 메모를 입력하세요...</span>
         </div>
+        <div className="mock-submit-btn mock-submit-btn--purple">💜 기록 저장</div>
       </div>
     </PhoneMockup>
   )
@@ -328,37 +418,53 @@ function MockCouplesDashboard() {
   return (
     <PhoneMockup>
       <div className="mock-couples">
+        <div className="mock-pr-header">
+          <span className="mock-back-arrow">← 뒤로</span>
+          <span className="mock-pr-title">커플 대시보드</span>
+        </div>
         <div className="mock-couple-stat">
           <div className="mock-couple-card">
-            <div className="cc-emoji">💕</div>
-            <div className="cc-val">12회</div>
-            <div className="cc-lbl">이번 달 관계</div>
+            <div className="cc-val">21/28일</div>
+            <div className="cc-lbl">주기 Day</div>
           </div>
           <div className="mock-couple-card">
-            <div className="cc-emoji">📊</div>
-            <div className="cc-val">3.2일</div>
-            <div className="cc-lbl">평균 간격</div>
+            <div className="cc-val">3회</div>
+            <div className="cc-lbl">이번 주기 관계</div>
           </div>
           <div className="mock-couple-card">
-            <div className="cc-emoji">🌙</div>
-            <div className="cc-val">밤</div>
-            <div className="cc-lbl">선호 시간</div>
+            <div className="cc-val">D-7</div>
+            <div className="cc-lbl">다음 생리까지</div>
+          </div>
+        </div>
+        <div className="mock-trend-section">
+          <div className="mock-trend-title">📊 월별 추이</div>
+          {[{ m: '2월', w: 60, v: 3 }, { m: '1월', w: 80, v: 5 }, { m: '12월', w: 50, v: 2 }].map((r) => (
+            <div key={r.m} className="mock-trend-row">
+              <span className="mock-trend-month">{r.m}</span>
+              <span className="mock-trend-bar" style={{ width: `${r.w}%` }} />
+              <span className="mock-trend-count">{r.v}회</span>
+            </div>
+          ))}
+        </div>
+        <div className="mock-phase-dist">
+          <div className="mock-trend-title">🔄 주기별 관계 분포</div>
+          <div className="mock-phase-dist-grid">
+            {[{ name: '생리기', cnt: '0회', pct: '0%', cls: 'period' }, { name: '난포기', cnt: '2회', pct: '40%', cls: 'fertile' }, { name: '배란기', cnt: '2회', pct: '40%', cls: 'ovulation' }, { name: '황체기', cnt: '1회', pct: '20%', cls: 'luteal' }].map((p) => (
+              <div key={p.name} className={`mock-phase-dist-card mock-phase-dist-card--${p.cls}`}>
+                <span className="mock-pd-name">{p.name}</span>
+                <span className="mock-pd-cnt">{p.cnt}</span>
+                <span className="mock-pd-pct">{p.pct}</span>
+              </div>
+            ))}
           </div>
         </div>
         <div className="mock-pregnancy-badge">
-          <span className="preg-icon">👶</span>
+          <span className="preg-icon">🤰</span>
           <div>
             <div className="preg-text">임신 계획 모드</div>
             <div className="preg-sub">가임기에 맞춘 최적 시기 안내</div>
           </div>
-        </div>
-        <div className="mock-chart-bars" style={{ height: '32px' }}>
-          <div className="mock-chart-bar" style={{ height: '40%' }} />
-          <div className="mock-chart-bar" style={{ height: '60%' }} />
-          <div className="mock-chart-bar" style={{ height: '80%' }} />
-          <div className="mock-chart-bar" style={{ height: '55%' }} />
-          <div className="mock-chart-bar" style={{ height: '90%' }} />
-          <div className="mock-chart-bar" style={{ height: '45%' }} />
+          <div className="mock-mini-toggle" />
         </div>
       </div>
     </PhoneMockup>
